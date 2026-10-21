@@ -1,0 +1,68 @@
+{
+  "generated_at": "2026-10-21T08:56:41.669Z",
+  "generated_at_th": "21/10/2569 15:56:41",
+  "location": {
+    "name": "ต.ขุนตัดหวาย อ.จะนะ จ.สงขลา",
+    "lat": 6.7936,
+    "lon": 100.7051,
+    "elevation_m": 16
+  },
+  "sources": {
+    "ecmwf": "ok",
+    "gfs": "ok",
+    "metno": "ok",
+    "rain": "ok",
+    "wl": "ok"
+  },
+  "forecast_24h": {
+    "by_source": {
+      "ecmwf": 2,
+      "gfs": 2.9,
+      "metno": 2
+    },
+    "consensus_mm": 2.3,
+    "min_mm": 2,
+    "max_mm": 2.9,
+    "chosen_mm": 2.3,
+    "agreement": "สอดคล้องกันดี (ช่วง 0.9 มม.)",
+    "source_count": 3
+  },
+  "forecast_6h": {
+    "by_source": {
+      "ecmwf": 0.4,
+      "gfs": 0.1,
+      "metno": 0
+    },
+    "max_mm": 0.4
+  },
+  "rain_observed": {
+    "janah": null,
+    "nathawi": null
+  },
+  "waterlevel": {
+    "janah": null,
+    "nathawi": null
+  },
+  "risk": {
+    "level": "ปกติ",
+    "level_code": "normal",
+    "level_index": 0,
+    "insufficient_data": false,
+    "score": 1.8,
+    "data_fresh": false,
+    "forecast_level": "ปกติ",
+    "observed_level": "ปกติ",
+    "waterlevel_level": "ปกติ",
+    "reasons": [
+      "พยากรณ์ 24ชม. 2.3 มม. → ปกติ"
+    ],
+    "note": "ประเมินจากตัวเลข 3 เกณฑ์เท่านั้น — ยังต้องพิจารณาประกาศทางการ (TMD/สทนช./ปภ./ผู้ว่าฯ) ประกอบ ซึ่งไฟล์นี้ไม่ได้ดึงอัตโนมัติ. ไม่ใช่การเตือนภัยอย่างเป็นทางการ"
+  },
+  "alert": {
+    "water_level_index": 0,
+    "water_level": "ปกติ",
+    "escalated": false,
+    "sent": false,
+    "lines": []
+  }
+}
