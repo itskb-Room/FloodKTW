@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-10-21T13:45:37.215Z",
-  "generated_at_th": "21/10/2569 20:45:37",
+  "generated_at": "2026-10-21T18:19:40.546Z",
+  "generated_at_th": "22/10/2569 01:19:40",
   "location": {
     "name": "ต.ขุนตัดหวาย อ.จะนะ จ.สงขลา",
     "lat": 6.7936,
@@ -16,15 +16,15 @@
   },
   "forecast_24h": {
     "by_source": {
-      "ecmwf": 3.8,
-      "gfs": 2.6,
+      "ecmwf": 3.9,
+      "gfs": 0,
       "metno": 3.6
     },
-    "consensus_mm": 3.3,
-    "min_mm": 2.6,
-    "max_mm": 3.8,
-    "chosen_mm": 3.3,
-    "agreement": "สอดคล้องกันดี (ช่วง 1.2 มม.)",
+    "consensus_mm": 2.5,
+    "min_mm": 0,
+    "max_mm": 3.9,
+    "chosen_mm": 2.5,
+    "agreement": "สอดคล้องกันดี (ช่วง 3.9 มม.)",
     "source_count": 3
   },
   "forecast_6h": {
@@ -37,100 +37,100 @@
   },
   "rain_observed": {
     "janah": {
-      "max_mm": 43,
+      "max_mm": 5,
       "max_station": "บ้านปากช่อง",
       "max_rain_1h": 0,
-      "avg_mm": 8.1,
-      "datetime": "2026-10-21 19:00",
-      "age_hours": 1.8,
+      "avg_mm": 2.1,
+      "datetime": "2026-10-21 23:00",
+      "age_hours": 2.3,
       "station_count": 7
     },
     "nathawi": {
-      "max_mm": 13,
+      "max_mm": 6.5,
       "max_station": "บ้านทุ่งลัง",
       "max_rain_1h": 0,
-      "avg_mm": 4.7,
-      "datetime": "2026-10-21 19:00",
-      "age_hours": 1.8,
+      "avg_mm": 3.3,
+      "datetime": "2026-10-21 23:00",
+      "age_hours": 2.3,
       "station_count": 11
     }
   },
   "waterlevel": {
     "janah": {
       "station": "จะนะ",
-      "waterlevel_msl": 2.85,
-      "waterlevel_msl_previous": 2.9,
+      "waterlevel_msl": 2.82,
+      "waterlevel_msl_previous": 2.98,
       "min_bank": 4.75,
-      "diff_wl_bank": 1.9,
+      "diff_wl_bank": 1.93,
       "situation_level": 1,
-      "datetime": "2026-10-21 20:30",
+      "datetime": "2026-10-22 01:00",
       "age_hours": 0.3,
       "rise": {
         "trend": "ลดลง",
-        "detail": "ลดลง -0.08 ม. ในช่วง ~4.7 ชม. (จาก 21/10 15:50 น. ที่ 2.93 ม.รทก. → ปัจจุบัน 2.85 ม.รทก.)",
-        "since_prev": {
-          "delta_m": -0.08,
-          "from_datetime_th": "21/10 15:50"
-        },
-        "changes": {
-          "1h": null,
-          "3h": null,
-          "6h": {
-            "delta_m": -0.08,
-            "over_hours": 4.7,
-            "from_datetime": "2026-10-21T08:50:00.000Z",
-            "from_datetime_th": "21/10 15:50",
-            "from_msl": 2.93
-          }
-        }
-      }
-    },
-    "nathawi": {
-      "station": "นาทวี",
-      "waterlevel_msl": 19.72,
-      "waterlevel_msl_previous": 19.72,
-      "min_bank": 22.71,
-      "diff_wl_bank": 2.99,
-      "situation_level": 3,
-      "datetime": "2026-10-21 20:30",
-      "age_hours": 0.3,
-      "rise": {
-        "trend": "ลดลง",
-        "detail": "ลดลง -0.03 ม. ในช่วง ~4.7 ชม. (จาก 21/10 15:50 น. ที่ 19.75 ม.รทก. → ปัจจุบัน 19.72 ม.รทก.)",
+        "detail": "ลดลง -0.03 ม. ในช่วง ~4.5 ชม. (จาก 21/10 20:30 น. ที่ 2.85 ม.รทก. → ปัจจุบัน 2.82 ม.รทก.)",
         "since_prev": {
           "delta_m": -0.03,
-          "from_datetime_th": "21/10 15:50"
+          "from_datetime_th": "21/10 20:30"
         },
         "changes": {
           "1h": null,
           "3h": null,
           "6h": {
             "delta_m": -0.03,
-            "over_hours": 4.7,
-            "from_datetime": "2026-10-21T08:50:00.000Z",
-            "from_datetime_th": "21/10 15:50",
-            "from_msl": 19.75
+            "over_hours": 4.5,
+            "from_datetime": "2026-10-21T13:30:00.000Z",
+            "from_datetime_th": "21/10 20:30",
+            "from_msl": 2.85
+          }
+        }
+      }
+    },
+    "nathawi": {
+      "station": "นาทวี",
+      "waterlevel_msl": 19.88,
+      "waterlevel_msl_previous": 19.88,
+      "min_bank": 22.71,
+      "diff_wl_bank": 2.83,
+      "situation_level": 3,
+      "datetime": "2026-10-22 01:00",
+      "age_hours": 0.3,
+      "rise": {
+        "trend": "สูงขึ้น",
+        "detail": "สูงขึ้น +0.16 ม. ในช่วง ~4.5 ชม. (จาก 21/10 20:30 น. ที่ 19.72 ม.รทก. → ปัจจุบัน 19.88 ม.รทก.)",
+        "since_prev": {
+          "delta_m": 0.16,
+          "from_datetime_th": "21/10 20:30"
+        },
+        "changes": {
+          "1h": null,
+          "3h": null,
+          "6h": {
+            "delta_m": 0.16,
+            "over_hours": 4.5,
+            "from_datetime": "2026-10-21T13:30:00.000Z",
+            "from_datetime_th": "21/10 20:30",
+            "from_msl": 19.72
           }
         }
       }
     }
   },
   "risk": {
-    "level": "เฝ้าระวัง",
-    "level_code": "watch",
-    "level_index": 1,
+    "level": "ปกติ",
+    "level_code": "normal",
+    "level_index": 0,
     "insufficient_data": false,
-    "score": 45.6,
+    "score": 8.5,
     "data_fresh": true,
     "forecast_level": "ปกติ",
-    "observed_level": "เฝ้าระวัง",
+    "observed_level": "ปกติ",
     "waterlevel_level": "ปกติ",
     "reasons": [
-      "พยากรณ์ 24ชม. 3.3 มม. → ปกติ",
-      "ฝนจริงจะนะสูงสุด 43 มม. (บ้านปากช่อง, เก่า 1.8 ชม.)",
-      "ฝนจริงนาทวีสูงสุด 13 มม. (บ้านทุ่งลัง, เก่า 1.8 ชม.)",
-      "คลองจะนะเหลือถึงตลิ่ง 1.9 ม. (เก่า 0.3 ชม.) — ลดลง -0.08 ม. ในช่วง ~4.7 ชม. (จาก 21/10 15:50 น. ที่ 2.93 ม.รทก. → ปัจจุบัน 2.85 ม.รทก.)",
-      "คลองนาทวีเหลือถึงตลิ่ง 2.99 ม. (เก่า 0.3 ชม.) — ลดลง -0.03 ม. ในช่วง ~4.7 ชม. (จาก 21/10 15:50 น. ที่ 19.75 ม.รทก. → ปัจจุบัน 19.72 ม.รทก.)"
+      "พยากรณ์ 24ชม. 2.5 มม. → ปกติ",
+      "ฝนจริงจะนะสูงสุด 5 มม. (บ้านปากช่อง, เก่า 2.3 ชม.)",
+      "ฝนจริงนาทวีสูงสุด 6.5 มม. (บ้านทุ่งลัง, เก่า 2.3 ชม.)",
+      "คลองจะนะเหลือถึงตลิ่ง 1.93 ม. (เก่า 0.3 ชม.) — ลดลง -0.03 ม. ในช่วง ~4.5 ชม. (จาก 21/10 20:30 น. ที่ 2.85 ม.รทก. → ปัจจุบัน 2.82 ม.รทก.)",
+      "คลองนาทวีเหลือถึงตลิ่ง 2.83 ม. (เก่า 0.3 ชม.) — ⬆ สูงขึ้น +0.16 ม. ในช่วง ~4.5 ชม. (จาก 21/10 20:30 น. ที่ 19.72 ม.รทก. → ปัจจุบัน 19.88 ม.รทก.)"
     ],
     "note": "ประเมินจากตัวเลข 3 เกณฑ์เท่านั้น — ยังต้องพิจารณาประกาศทางการ (TMD/สทนช./ปภ./ผู้ว่าฯ) ประกอบ ซึ่งไฟล์นี้ไม่ได้ดึงอัตโนมัติ. ไม่ใช่การเตือนภัยอย่างเป็นทางการ"
   },
@@ -139,6 +139,8 @@
     "water_level": "ปกติ",
     "escalated": false,
     "sent": false,
-    "lines": []
+    "lines": [
+      "คลองนาทวี: เหลือถึงตลิ่ง 2.83 ม. (ปกติ) | สูงขึ้น +0.16 ม. ในช่วง ~4.5 ชม. (จาก 21/10 20:30 น. ที่ 19.72 ม.รทก. → ปัจจุบัน 19.88 ม.รทก.)"
+    ]
   }
 }
