@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "key": "janah",
+    "datetime": "2026-10-21T08:50:00.000Z",
+    "datetime_th": "21/10/2569 15:50:00",
+    "msl": 2.93,
+    "diff_wl_bank": 1.82
+  },
+  {
+    "key": "nathawi",
+    "datetime": "2026-10-21T08:50:00.000Z",
+    "datetime_th": "21/10/2569 15:50:00",
+    "msl": 19.75,
+    "diff_wl_bank": 2.96
+  }
+]
