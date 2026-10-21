@@ -10,7 +10,7 @@
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'node:fs';
 
 const LAT = 6.7936, LON = 100.7051, ELEV_M = 16;
-const UA = 'FloodKTW/1.0 (+https://itskb2026-debug.github.io/FloodKTW/)';
+const UA = 'FloodKTW/1.0 (+https://itskb-room.github.io/FloodKTW/)';
 const FRESH_HOURS = 6; // ข้อมูลวัดจริงเก่ากว่านี้ = ไม่นับว่าปลอดภัย
 const HISTORY_FILE = 'data/history-wl.json'; // เก็บประวัติระดับน้ำคลอง
 const HISTORY_KEEP_HOURS = 48;               // เก็บย้อนหลังกี่ชั่วโมง
@@ -25,6 +25,13 @@ const num = (v) => {
   if (v === null || v === undefined || v === '') return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
+};
+
+// thaiwater คืนชื่อเป็น object {th, en} — ดึงเป็นข้อความไทย
+const thName = (v) => {
+  if (v == null) return '';
+  if (typeof v === 'object') return v.th || v.en || '';
+  return String(v);
 };
 
 async function getJSON(url, headers = {}) {
@@ -80,11 +87,11 @@ function sumMetno(j, hours) {
 // ---------- thaiwater rain ----------
 function parseRain(j) {
   const arr = j?.data || (Array.isArray(j) ? j : []);
-  const pick = (amphoe) => arr.filter((s) => String(s?.geocode?.amphoe_name || '').includes(amphoe));
+  const pick = (amphoe) => arr.filter((s) => thName(s?.geocode?.amphoe_name).includes(amphoe));
   const summarize = (list) => {
     const vals = list
       .map((s) => ({
-        name: s?.station?.tele_station_name ?? s?.station?.station_name ?? '',
+        name: thName(s?.station?.tele_station_name) || thName(s?.station?.station_name),
         rain_1h: num(s?.rain_1h),
         rain_24h: num(s?.rain_24h),
         datetime: s?.rainfall_datetime ?? null,
@@ -103,15 +110,17 @@ function parseRain(j) {
 
 // ---------- thaiwater waterlevel ----------
 function parseWL(j) {
-  const arr = j?.data || (Array.isArray(j) ? j : []);
+  // โครงสร้างจริง: { waterlevel_data: { data: [...] }, ... }
+  const arr = j?.waterlevel_data?.data || j?.data || (Array.isArray(j) ? j : []);
   const byId = (id) => arr.find((s) => String(s?.station?.id) === String(id));
   const one = (s) => {
     if (!s) return null;
     return {
-      station: s?.station?.tele_station_name ?? s?.station?.station_name ?? '',
+      station: thName(s?.station?.tele_station_name) || thName(s?.station?.station_name),
       waterlevel_msl: num(s?.waterlevel_msl),
+      waterlevel_msl_previous: num(s?.waterlevel_msl_previous),
       min_bank: num(s?.station?.min_bank),
-      diff_wl_bank: num(s?.diff_wl_bank), // เหลืออีกกี่เมตรถึงตลิ่ง
+      diff_wl_bank: num(s?.diff_wl_bank), // เหลืออีกกี่เมตรถึงตลิ่ง (ต่ำกว่าตลิ่ง = บวก)
       situation_level: s?.situation_level ?? null,
       datetime: s?.waterlevel_datetime ?? null,
       age_hours: ageHours(s?.waterlevel_datetime),
@@ -236,7 +245,7 @@ async function maybeSendWaterAlert(out) {
       ...lines,
       `ความเสี่ยงรวม: ${out.risk.level}`,
       `เวลา: ${out.generated_at_th} น.`,
-      `รายละเอียด: https://itskb2026-debug.github.io/FloodKTW/`,
+      `รายละเอียด: https://itskb-room.github.io/FloodKTW/`,
     ].join('\n');
     sent = await sendWebhook(msg);
     if (sent) sentAt = out.generated_at;
@@ -391,4 +400,4 @@ if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).
   main().catch((e) => { console.error('FATAL', e); process.exit(1); });
 }
 
-export { computeRise, updateHistory, loadHistory, parseThaiTime, ageHours, fcLevel, obsLevel, wlLevel, maybeSendWaterAlert };
+export { computeRise, updateHistory, loadHistory, parseThaiTime, ageHours, fcLevel, obsLevel, wlLevel, maybeSendWaterAlert, parseRain, parseWL, thName };
