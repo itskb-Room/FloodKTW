@@ -129,6 +129,19 @@
   .wl-row b{color:var(--ink); font-weight:600;}
   .wl-bar{height:8px; border-radius:5px; background:var(--line); margin-top:10px; overflow:hidden;}
   .wl-bar i{display:block; height:100%; border-radius:5px; transition:width .5s;}
+  #flowMap{height:460px; border-radius:12px; overflow:hidden; z-index:0; background:var(--panel-2);}
+  .flow-ctl{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; font-size:.83rem; color:var(--muted);}
+  .flow-ctl .seg{display:inline-flex; border:1px solid var(--line); border-radius:9px; overflow:hidden;}
+  .flow-ctl .seg button{border:0; background:var(--panel); color:var(--ink); padding:6px 11px; font:inherit; font-size:.82rem; cursor:pointer;}
+  .flow-ctl .seg button.on{background:var(--accent); color:#fff;}
+  .flow-ctl .chk{display:inline-flex; align-items:center; gap:5px; cursor:pointer;}
+  .flow-stat{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-top:12px;}
+  .flow-stat .s{border:1px solid var(--line); border-radius:12px; padding:10px 12px; background:var(--panel-2);}
+  .flow-stat .s .l{font-size:.76rem; color:var(--muted);}
+  .flow-stat .s .v{font-size:1.15rem; font-weight:700; margin-top:3px; letter-spacing:-.01em;}
+  .flow-grad{height:12px; border-radius:6px; margin:6px 0 2px;}
+  .flow-prog{height:6px; border-radius:4px; background:var(--line); overflow:hidden; margin-top:8px;}
+  .flow-prog i{display:block; height:100%; width:0; background:var(--accent); transition:width .2s;}
 </style>
 </head>
 <body>
@@ -357,6 +370,34 @@
         <span><span class="sw" style="background:#cc00cc"></span> หนักมาก</span>
       </span>
     </div>
+  </section>
+
+  <!-- GIS FLOW ANALYSIS -->
+  <section class="card" id="flowCard">
+    <h2>🗺️ วิเคราะห์ทิศทางการไหลของน้ำ (GIS)</h2>
+    <p class="hint">วิเคราะห์จากแบบจำลองความสูงภูมิประเทศ (DEM — Copernicus ~90 ม. ผ่าน Open-Meteo) รอบจุดปักหมุด ด้วยหลักอุทกวิทยา: <b>เติมหลุม → ทิศทางไหล D8 → การสะสมน้ำ → HAND</b> เพื่อดูว่าน้ำไหลไปทางไหนและพื้นที่ไหนเสี่ยงน้ำท่วมถึง · ประมวลผลในเบราว์เซอร์ กดปุ่มเพื่อเริ่ม (ดึงข้อมูลความสูงหลายร้อยจุด ใช้เวลาสักครู่)</p>
+    <div class="flow-ctl" style="margin:0 0 10px;">
+      <button class="btn" id="flowRun">▶ วิเคราะห์ทิศทางการไหล</button>
+      <label class="chk">รัศมี <select id="flowRadius" class="btn" style="padding:5px 8px;">
+        <option value="3">3 กม.</option><option value="4" selected>4 กม.</option><option value="5">5 กม.</option><option value="6">6 กม.</option>
+      </select></label>
+      <span id="flowMsg">ยังไม่ได้วิเคราะห์</span>
+    </div>
+    <div class="flow-prog" id="flowProg" style="display:none"><i id="flowProgBar"></i></div>
+    <div id="flowMap" style="margin-top:10px; display:none"></div>
+    <div class="flow-ctl" id="flowControls" style="display:none">
+      <span>ชั้นข้อมูล:</span>
+      <span class="seg" id="flowLayers">
+        <button data-layer="hand" class="on">พื้นที่น้ำท่วมถึง (HAND)</button>
+        <button data-layer="acc">การสะสมน้ำ/ลำน้ำ</button>
+        <button data-layer="elev">ความสูงภูมิประเทศ</button>
+      </span>
+      <label class="chk"><input type="checkbox" id="flowArrows" checked> ลูกศรทิศทางไหล</label>
+      <label class="chk"><input type="checkbox" id="flowPath" checked> เส้นทางน้ำจากจุดปักหมุด</label>
+    </div>
+    <div id="flowLegend" class="flow-ctl" style="display:none"></div>
+    <div class="flow-stat" id="flowStat" style="display:none"></div>
+    <div class="disc" style="margin-top:12px;">⚠️ เป็นการวิเคราะห์เชิงภูมิประเทศเบื้องต้น (terrain-based) ใช้ชี้ทิศทางการไหลและพื้นที่ลุ่มเสี่ยง — <b>ไม่ใช่แบบจำลองน้ำท่วมเชิงไฮดรอลิก</b> DEM 90 ม. ไม่เห็นคันคลอง/ถนน/คันนา และยังไม่รวมปริมาณฝน–น้ำท่า น้ำทะเลหนุน หรือการระบายจริง ใช้ประกอบการเฝ้าระวังเท่านั้น</div>
   </section>
 
   <div class="two">
@@ -1017,6 +1058,190 @@ function refreshTMD(){
   img.onerror=()=>{ $('tmdMsg').innerHTML='⚠️ ภาพเรดาร์จากกรมอุตุฯ อาจถูกจำกัดการฝังตรง กรุณาเปิดหน้าทางการ → <a href="https://weather.tmd.go.th/stp.php" target="_blank" rel="noopener">weather.tmd.go.th (สทิงพระ)</a>'; };
   img.src='https://weather.tmd.go.th/stp/stp240_latest.jpg?t='+Date.now();
 }
+
+/* ===== GIS: วิเคราะห์ทิศทางการไหลของน้ำจาก DEM ===== */
+// -- เครื่องมืออุทกวิทยา (fill sinks → D8 → flow accumulation → HAND) ทดสอบแล้วกับภูมิประเทศจำลอง --
+function hydroCompute(dem, W, H, cell, opts){
+  opts=opts||{}; const EPS=opts.eps!=null?opts.eps:0.001, N=W*H, SQ2=Math.SQRT2;
+  const dRow=[-1,-1,-1,0,0,1,1,1], dCol=[-1,0,1,-1,1,-1,0,1];
+  const dDist=[SQ2,1,SQ2,1,1,SQ2,1,SQ2].map(x=>x*cell);
+  const inB=(r,c)=> r>=0&&r<H&&c>=0&&c<W, isData=v=>!(v==null||isNaN(v)), BIG=1e9;
+  const wl=new Float64Array(N);
+  for(let i=0;i<N;i++){ const r=(i/W)|0,c=i%W, border=r===0||c===0||r===H-1||c===W-1;
+    wl[i]=(!isData(dem[i]))?dem[i]:(border?dem[i]:BIG); }
+  let changed=true, pass=0;
+  while(changed&&pass<200){ changed=false; pass++; const fwd=pass%2===1;
+    const rs=fwd?0:H-1,re=fwd?H:-1,rst=fwd?1:-1, cs=fwd?0:W-1,ce=fwd?W:-1,cst=fwd?1:-1;
+    for(let r=rs;r!==re;r+=rst)for(let c=cs;c!==ce;c+=cst){ const i=r*W+c;
+      if(!isData(dem[i])||wl[i]===dem[i]) continue;
+      for(let k=0;k<8;k++){ const nr=r+dRow[k],nc=c+dCol[k]; if(!inB(nr,nc))continue; const ni=nr*W+nc; if(!isData(dem[ni]))continue;
+        const cand=wl[ni]+EPS*dDist[k];
+        if(dem[i]>=cand){ if(wl[i]!==dem[i]){wl[i]=dem[i];changed=true;} break; }
+        if(cand<wl[i]){ wl[i]=cand; changed=true; } } } }
+  const dir=new Int8Array(N).fill(-1);
+  for(let i=0;i<N;i++){ if(!isData(dem[i])){dir[i]=-2;continue;} const r=(i/W)|0,c=i%W; let best=-1,bs=0;
+    for(let k=0;k<8;k++){ const nr=r+dRow[k],nc=c+dCol[k]; if(!inB(nr,nc)){best=-1;bs=Infinity;break;} const ni=nr*W+nc; if(!isData(dem[ni]))continue;
+      const s=(wl[i]-wl[ni])/dDist[k]; if(s>bs){bs=s;best=k;} } dir[i]=best; }
+  const order=[]; for(let i=0;i<N;i++) if(isData(dem[i])) order.push(i); order.sort((a,b)=>wl[b]-wl[a]);
+  const acc=new Float64Array(N); for(let i=0;i<N;i++) if(isData(dem[i])) acc[i]=1;
+  const downOf=i=>{ const k=dir[i]; if(k<0)return -1; const r=(i/W)|0,c=i%W; return (r+dRow[k])*W+(c+dCol[k]); };
+  for(const i of order){ const d=downOf(i); if(d>=0&&isData(dem[d])) acc[d]+=acc[i]; }
+  const thr=opts.streamThreshold!=null?opts.streamThreshold:Math.max(10,Math.round(N*0.012));
+  const isStream=new Uint8Array(N); for(let i=0;i<N;i++) if(isData(dem[i])&&acc[i]>=thr) isStream[i]=1;
+  const hand=new Float64Array(N).fill(NaN), drainElev=new Float64Array(N).fill(NaN);
+  function resolveDrain(i){ const stack=[]; let cur=i,g=0;
+    while(cur>=0&&isData(dem[cur])&&!isStream[cur]&&isNaN(drainElev[cur])&&g++<N){ stack.push(cur); cur=downOf(cur); }
+    let base; if(cur<0||!isData(dem[cur])) base=isData(dem[stack[stack.length-1]])?dem[stack[stack.length-1]]:NaN;
+    else if(isStream[cur]) base=dem[cur]; else base=drainElev[cur];
+    for(const s of stack) drainElev[s]=base; return base; }
+  for(let i=0;i<N;i++){ if(!isData(dem[i]))continue;
+    if(isStream[i]){ hand[i]=0; drainElev[i]=dem[i]; continue; }
+    if(isNaN(drainElev[i])) resolveDrain(i);
+    hand[i]=!isNaN(drainElev[i])?Math.max(0,dem[i]-drainElev[i]):NaN; }
+  function pathFrom(i){ const p=[i]; let cur=i,g=0; while(g++<N){ const d=downOf(cur); if(d<0||!isData(dem[d]))break; p.push(d); cur=d; } return p; }
+  return {wl,dir,acc,hand,isStream,thr,downOf,pathFrom,dRow,dCol};
+}
+
+// -- ดึงกริดความสูงจาก Open-Meteo แล้ววิเคราะห์ + วาดทับแผนที่ --
+let flowMap=null, flowOverlay=null, flowPathLayer=null, flowMarker=null, flowData=null;
+const COMPASS8=['ทิศเหนือ','ทิศตะวันออกเฉียงเหนือ','ทิศตะวันออก','ทิศตะวันออกเฉียงใต้','ทิศใต้','ทิศตะวันตกเฉียงใต้','ทิศตะวันตก','ทิศตะวันตกเฉียงเหนือ'];
+function compass8(bearing){ const a=((bearing%360)+360)%360; return COMPASS8[Math.round(a/45)%8]; }
+async function omElevation(lats, lons){
+  const url='https://api.open-meteo.com/v1/elevation?latitude='+lats.join(',')+'&longitude='+lons.join(',');
+  const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status);
+  const d=await r.json(); if(!d.elevation) throw new Error('ไม่มีข้อมูลความสูง'); return d.elevation;
+}
+async function runFlowAnalysis(){
+  const btn=$('flowRun'), msg=$('flowMsg'), prog=$('flowProg'), bar=$('flowProgBar');
+  const Rkm=parseFloat($('flowRadius').value)||4;
+  btn.disabled=true; prog.style.display='block'; bar.style.width='2%'; msg.textContent='กำลังเตรียมกริด…';
+  try{
+    const N=Math.max(30, Math.min(60, Math.round(2*Rkm*1000/180)+1));
+    const dLat=Rkm*1000/111320, dLon=Rkm*1000/(111320*Math.cos(LAT*Math.PI/180));
+    const latMax=LAT+dLat, latMin=LAT-dLat, lonMin=LON-dLon, lonMax=LON+dLon;
+    const cellM=(2*Rkm*1000)/(N-1);
+    const lat=i=>latMax-(latMax-latMin)*i/(N-1);
+    const lon=j=>lonMin+(lonMax-lonMin)*j/(N-1);
+    const cacheKey='flowdem:'+LAT.toFixed(4)+','+LON.toFixed(4)+':R'+Rkm+':N'+N;
+    let dem=lsGet(cacheKey);
+    if(Array.isArray(dem)&&dem.length===N*N){ dem=Float64Array.from(dem); msg.textContent='ใช้ข้อมูลความสูงที่เก็บไว้'; bar.style.width='70%'; }
+    else{
+      dem=new Float64Array(N*N); const pts=[];
+      for(let r=0;r<N;r++)for(let c=0;c<N;c++) pts.push([r*N+c, lat(r), lon(c)]);
+      const CH=100;
+      for(let s=0;s<pts.length;s+=CH){
+        const chunk=pts.slice(s,s+CH);
+        const ev=await omElevation(chunk.map(p=>p[1].toFixed(5)), chunk.map(p=>p[2].toFixed(5)));
+        chunk.forEach((p,k)=>{ dem[p[0]]=(ev[k]!=null)?ev[k]:NaN; });
+        bar.style.width=(5+60*(s+CH)/pts.length).toFixed(0)+'%';
+        msg.textContent='ดึงความสูง '+Math.min(pts.length,s+CH)+'/'+pts.length+' จุด…';
+      }
+      try{ lsSet(cacheKey, Array.from(dem, v=>Math.round(v*10)/10)); }catch(e){}
+    }
+    msg.textContent='กำลังคำนวณทิศทางการไหล…'; bar.style.width='80%'; await new Promise(r=>setTimeout(r,20));
+    const thr=Math.max(12, Math.round(N*N*0.012));
+    const Hc=hydroCompute(dem, N, N, cellM, {streamThreshold:thr});
+    const center=Math.floor(N/2)*N+Math.floor(N/2);
+    const valid=dem.filter(v=>!isNaN(v));
+    flowData={dem,N,cellM,H:Hc,bounds:[[latMin,lonMin],[latMax,lonMax]],lat,lon,center,Rkm,
+      demMin:Math.min.apply(null,valid), demMax:Math.max.apply(null,valid)};
+    bar.style.width='95%';
+    ensureFlowMap(); renderFlowLayer(currentFlowLayer); renderFlowStats();
+    $('flowMap').style.display='block'; $('flowControls').style.display='flex';
+    $('flowLegend').style.display='flex'; $('flowStat').style.display='grid';
+    setTimeout(()=>flowMap.invalidateSize(),150); setTimeout(()=>flowMap.invalidateSize(),600);
+    bar.style.width='100%'; msg.innerHTML='วิเคราะห์เสร็จ ('+N+'×'+N+' จุด · ~'+Math.round(cellM)+' ม./เซลล์)';
+    setTimeout(()=>{prog.style.display='none';},800);
+  }catch(e){
+    msg.innerHTML='<span class="err">วิเคราะห์ไม่สำเร็จ ('+e.message+') — Open-Meteo อาจจำกัดจำนวนครั้ง ลองใหม่อีกครั้งหรือลดรัศมี</span>';
+    prog.style.display='none';
+  } finally { btn.disabled=false; }
+}
+function ensureFlowMap(){
+  if(flowMap) return;
+  flowMap=L.map('flowMap',{zoomControl:true}).setView([LAT,LON],12);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+    {maxZoom:18, attribution:'Tiles &copy; Esri'}).addTo(flowMap);
+  const icon=L.divIcon({className:'',html:'<div style="width:16px;height:16px;background:#ef4444;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 2px #ef4444"></div>',iconSize:[16,16],iconAnchor:[8,8]});
+  flowMarker=L.marker([LAT,LON],{icon}).addTo(flowMap).bindPopup('<b>ต.ขุนตัดหวาย</b> (จุดวิเคราะห์)');
+}
+function handColor(h){ if(isNaN(h)) return null;
+  if(h<0.5) return '#b91c1c'; if(h<1) return '#ea580c'; if(h<2) return '#eab308'; if(h<4) return '#84cc16'; if(h<8) return '#22c55e'; return '#0f766e'; }
+function rampColor(t){ t=Math.max(0,Math.min(1,t));
+  const stops=[[46,125,50],[163,177,61],[202,162,74],[138,94,58],[235,235,235]];
+  const x=t*(stops.length-1), i=Math.floor(x), f=x-i, a=stops[i], b=stops[Math.min(i+1,stops.length-1)];
+  return 'rgb('+Math.round(a[0]+(b[0]-a[0])*f)+','+Math.round(a[1]+(b[1]-a[1])*f)+','+Math.round(a[2]+(b[2]-a[2])*f)+')'; }
+let currentFlowLayer='hand';
+function renderFlowLayer(layer){
+  currentFlowLayer=layer; if(!flowData) return; const {dem,N,H,demMin,demMax}=flowData;
+  const sc=Math.max(6, Math.round(480/N)), cv=document.createElement('canvas'); cv.width=N*sc; cv.height=N*sc;
+  const ctx=cv.getContext('2d'); const accMax=Math.max.apply(null,H.acc.filter(v=>!isNaN(v)));
+  for(let i=0;i<N*N;i++){ const r=(i/N)|0,c=i%N; let col=null;
+    if(layer==='hand') col=handColor(H.hand[i]);
+    else if(layer==='elev'){ col=isNaN(dem[i])?null:rampColor((dem[i]-demMin)/Math.max(1e-6,demMax-demMin)); }
+    else { const a=H.acc[i]; if(!isNaN(a)){ const t=Math.log(a)/Math.log(accMax); const g=Math.round(255*(1-t));
+      col=H.isStream[i]?'#1d4ed8':'rgb('+g+','+g+','+Math.min(255,g+30)+')'; } }
+    if(col){ ctx.fillStyle=col; ctx.fillRect(c*sc,r*sc,sc,sc); } }
+  if(layer!=='acc'){ ctx.fillStyle='rgba(29,78,216,.85)';
+    for(let i=0;i<N*N;i++){ if(H.isStream[i]){ const r=(i/N)|0,c=i%N; ctx.fillRect(c*sc+sc*0.25,r*sc+sc*0.25,sc*0.5,sc*0.5);} } }
+  if($('flowArrows').checked){ const step=Math.max(2,Math.round(N/22));
+    for(let r=1;r<N-1;r+=step)for(let c=1;c<N-1;c+=step){ const i=r*N+c, k=H.dir[i]; if(k<0)continue;
+      const cx=c*sc+sc/2, cy=r*sc+sc/2, ln=sc*step*0.42, ang=Math.atan2(H.dRow[k], H.dCol[k]);
+      const ex=cx+Math.cos(ang)*ln, ey=cy+Math.sin(ang)*ln; ctx.lineCap='round';
+      ctx.strokeStyle='rgba(255,255,255,.9)'; ctx.lineWidth=2.4; drawArrow(ctx,cx,cy,ex,ey,sc);
+      ctx.strokeStyle='rgba(15,23,42,.9)'; ctx.lineWidth=1.2; drawArrow(ctx,cx,cy,ex,ey,sc); } }
+  if(flowOverlay) flowMap.removeLayer(flowOverlay);
+  flowOverlay=L.imageOverlay(cv.toDataURL(), flowData.bounds, {opacity:0.62}).addTo(flowMap);
+  flowMap.fitBounds(flowData.bounds);
+  renderFlowPath(); updateLegend(layer);
+  [].forEach.call($('flowLayers').children, b=>b.classList.toggle('on', b.dataset.layer===layer));
+}
+function drawArrow(ctx,x1,y1,x2,y2,sc){ const a=Math.atan2(y2-y1,x2-x1), hl=Math.max(3,sc*0.6);
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+  ctx.moveTo(x2,y2); ctx.lineTo(x2-hl*Math.cos(a-0.4), y2-hl*Math.sin(a-0.4));
+  ctx.moveTo(x2,y2); ctx.lineTo(x2-hl*Math.cos(a+0.4), y2-hl*Math.sin(a+0.4)); ctx.stroke(); }
+function renderFlowPath(){
+  if(flowPathLayer){ flowMap.removeLayer(flowPathLayer); flowPathLayer=null; }
+  if(!flowData || !$('flowPath').checked) return;
+  const {H,center,lat,lon,N}=flowData; const path=H.pathFrom(center);
+  const pts=path.map(i=>[lat((i/N)|0), lon(i%N)]);
+  flowPathLayer=L.layerGroup().addTo(flowMap);
+  L.polyline(pts,{color:'#dc2626',weight:3.5,opacity:.95}).addTo(flowPathLayer);
+  L.circleMarker(pts[pts.length-1],{radius:5,color:'#dc2626',fillColor:'#fff',fillOpacity:1,weight:2})
+    .addTo(flowPathLayer).bindPopup('จุดน้ำออกจากพื้นที่วิเคราะห์');
+}
+function updateLegend(layer){ const el=$('flowLegend'); let h='';
+  if(layer==='hand'){ h='<b>HAND (ความสูงเหนือลำน้ำ) — เสี่ยงน้ำท่วมถึง:</b>'+
+    swatch('#b91c1c','<0.5 ม.')+swatch('#ea580c','0.5–1')+swatch('#eab308','1–2')+swatch('#84cc16','2–4')+swatch('#22c55e','4–8')+swatch('#0f766e','>8 ม.'); }
+  else if(layer==='acc'){ h='<b>การสะสมน้ำ:</b> '+swatch('#1d4ed8','ลำน้ำ (สะสมสูง)')+' · พื้นที่เข้มน้อย = รับน้ำมาก'; }
+  else { h='<b>ความสูงภูมิประเทศ:</b>'+swatch('rgb(46,125,50)','ต่ำ')+swatch('rgb(202,162,74)','กลาง')+swatch('rgb(235,235,235)','สูง'); }
+  h+=' &nbsp;·&nbsp; <span style="color:#dc2626;font-weight:700">—</span> เส้นทางน้ำจากจุดปักหมุด';
+  el.innerHTML=h;
+}
+function swatch(c,t){ return ' <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:13px;height:13px;border-radius:3px;background:'+c+';display:inline-block"></span>'+t+'</span>'; }
+function renderFlowStats(){
+  const {dem,N,H,center,cellM}=flowData; const el=$('flowStat');
+  let n=0, lt1=0, lt05=0; for(let i=0;i<N*N;i++){ if(isNaN(H.hand[i]))continue; n++; if(H.hand[i]<1)lt1++; if(H.hand[i]<0.5)lt05++; }
+  const path=H.pathFrom(center); let flowsTo=null;
+  if(path.length>2){ const r0=(center/N)|0,c0=center%N; let tgt=path[path.length-1];
+    for(const idx of path){ const rr=(idx/N)|0,cc=idx%N; const dm=Math.hypot(rr-r0,cc-c0)*cellM; if(dm>=1200){tgt=idx;break;} }
+    const r1=(tgt/N)|0,c1=tgt%N; const dN=(r0-r1), dE=(c1-c0)*Math.cos(LAT*Math.PI/180);
+    flowsTo=compass8(Math.atan2(dE,dN)*180/Math.PI); }
+  const pinElev=dem[center], pinHand=H.hand[center];
+  const outlet=path[path.length-1], outElev=dem[outlet];
+  el.innerHTML=
+    stat('น้ำจากจุดปักหมุดไหลไปทาง', flowsTo?('<span style="color:var(--accent)">'+flowsTo+'</span>'):'—')+
+    stat('ระดับความสูงจุดปักหมุด', (isNaN(pinElev)?'–':pinElev.toFixed(1))+' ม.')+
+    stat('HAND จุดปักหมุด', (isNaN(pinHand)?'–':pinHand.toFixed(1))+' ม. '+(pinHand<1?'<span style="color:var(--red)">(ลุ่มเสี่ยง)</span>':pinHand<2?'<span style="color:var(--yellow)">(ค่อนข้างต่ำ)</span>':'<span style="color:var(--green)">(ค่อนข้างปลอดภัย)</span>'))+
+    stat('พื้นที่ลุ่มเสี่ยงน้ำท่วมถึง (HAND<1 ม.)', (100*lt1/n).toFixed(0)+'% ของพื้นที่')+
+    stat('พื้นที่ติดลำน้ำ (HAND<0.5 ม.)', (100*lt05/n).toFixed(0)+'%')+
+    stat('จุดน้ำออก (ระดับต่ำสุดปลายทาง)', (isNaN(outElev)?'–':outElev.toFixed(1))+' ม.');
+}
+function stat(l,v){ return '<div class="s"><div class="l">'+l+'</div><div class="v">'+v+'</div></div>'; }
+$('flowRun').addEventListener('click', runFlowAnalysis);
+$('flowLayers').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) renderFlowLayer(b.dataset.layer); });
+$('flowArrows').addEventListener('change', ()=>renderFlowLayer(currentFlowLayer));
+$('flowPath').addEventListener('change', ()=>{ renderFlowPath(); });
 
 /* ===== เริ่มทำงาน + auto refresh ===== */
 $('refreshBtn').addEventListener('click', ()=>{ loadWeather(); loadMultiSource(); loadWaterLevel(); loadRain(); loadRadar(); refreshTMD(); });
