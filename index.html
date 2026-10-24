@@ -785,27 +785,77 @@ function wlTrend(h){
   if(dM>=WL_TREND_MIN) dir='up'; else if(dM<=-WL_TREND_MIN) dir='down';
   return {dir, dCm, rate, dt, n:h.length};
 }
-// สร้าง badge + บรรทัดรายละเอียดแนวโน้ม
+// สร้าง badge + บรรทัดรายละเอียดแนวโน้ม (รองรับทั้งข้อมูลเซิร์ฟเวอร์และที่จดเอง)
 function wlTrendView(tr){
   if(!tr || tr.dir==null)
-    return {badge:'', detail:'<span>แนวโน้ม</span><b style="color:var(--muted)">กำลังเก็บข้อมูล…</b>'};
-  const abs=Math.abs(tr.dCm), rateTxt=fmt(Math.abs(tr.rate),1)+' ซม./ชม.';
-  const spanTxt = tr.dt>=1 ? fmt(tr.dt,1)+' ชม.' : Math.round(tr.dt*60)+' นาที';
+    return {badge:'', detail:'<span>แนวโน้ม</span><b style="color:var(--muted)">กำลังเก็บข้อมูล…</b>', title:''};
   let ic,word,col,bg;
   if(tr.dir==='up'){        ic='▲'; word='น้ำขึ้น'; col='var(--orange)'; bg='var(--orange-bg)'; }
   else if(tr.dir==='down'){ ic='▼'; word='น้ำลด';  col='var(--green)';  bg='var(--green-bg)'; }
   else {                    ic='▬'; word='ทรงตัว'; col='var(--muted)';  bg='var(--panel)'; }
   const badge=`<span class="wl-badge" style="color:${col};background:${bg}">${ic} ${word}</span>`;
-  const detail = tr.dir==='flat'
-    ? `<span>แนวโน้ม</span><b style="color:${col}">▬ ทรงตัว <small style="color:var(--muted);font-weight:500">(±${fmt(abs,0)} ซม./${spanTxt})</small></b>`
-    : `<span>แนวโน้ม</span><b style="color:${col}">${ic} ${word} ${fmt(abs,0)} ซม. ใน ${spanTxt} <small style="color:var(--muted);font-weight:500">(${rateTxt})</small></b>`;
-  return {badge, detail};
+  // ตัวเลขเปลี่ยนแปลง (มีเมื่อรู้ค่า delta/ช่วงเวลา)
+  let nums='';
+  if(tr.dCm!=null){
+    const abs=Math.abs(tr.dCm);
+    const spanTxt=(tr.dt!=null)?(tr.dt>=1?fmt(tr.dt,1)+' ชม.':Math.round(tr.dt*60)+' นาที'):null;
+    const rate=(tr.dt&&tr.dt>0)?fmt(Math.abs(tr.dCm/tr.dt),1)+' ซม./ชม.':null;
+    nums = (tr.dir==='flat')
+      ? ` <small style="color:var(--muted);font-weight:500">(±${fmt(abs,0)} ซม.${spanTxt?'/'+spanTxt:''})</small>`
+      : ` ${fmt(abs,0)} ซม.${spanTxt?' ใน '+spanTxt:''}${rate?` <small style="color:var(--muted);font-weight:500">(${rate})</small>`:''}`;
+  }
+  const srcTag = tr.source==='hist' ? ' <small style="color:var(--muted)">·ประวัติ</small>'
+             : tr.source==='local' ? ' <small style="color:var(--muted)">·จดเอง</small>' : '';
+  const detail=`<span>แนวโน้ม</span><b style="color:${col}">${ic} ${word}${nums}</b>${srcTag}`;
+  return {badge, detail, title:tr.detail||''};
+}
+
+/* ===== แนวโน้มจากข้อมูลฝั่งเซิร์ฟเวอร์ (GitHub Actions → data/*.json) ===== */
+let WL_LATEST=null, WL_HISTORY=null;
+const WL_KEY_MAP={'849':'janah','850':'nathawi'};   // station id → key ในไฟล์ data
+function wlKeyOf(st0, amp){
+  const id=String((st0||{}).id||'');
+  if(WL_KEY_MAP[id]) return WL_KEY_MAP[id];
+  const nm=(txt(st0&&st0.tele_station_name)||'')+' '+(amp||'');
+  if(nm.includes('จะนะ')) return 'janah';
+  if(nm.includes('นาทวี')) return 'nathawi';
+  return null;
+}
+// โหลดไฟล์แนวโน้มที่เซิร์ฟเวอร์เตรียมไว้ (same-origin → ไม่โดน 429/CORS)
+async function loadServerWL(){
+  try{ const r=await fetch('./data/latest.json?t='+Date.now(),{cache:'no-store'}); WL_LATEST = r.ok? await r.json() : null; }catch(e){ WL_LATEST=null; }
+  try{ const r=await fetch('./data/history-wl.json?t='+Date.now(),{cache:'no-store'}); WL_HISTORY = r.ok? await r.json() : null; }catch(e){ WL_HISTORY=null; }
+}
+// แนวโน้มของสถานี: 1) latest.json (คำนวณไว้แล้ว) → 2) history-wl.json (คำนวณเอง) → null
+function serverTrend(key){
+  if(!key) return null;
+  // 1) ค่าที่เซิร์ฟเวอร์คำนวณไว้แล้ว
+  const w = WL_LATEST && WL_LATEST.waterlevel && WL_LATEST.waterlevel[key];
+  if(w && w.rise){
+    const ch=(w.rise.changes&&(w.rise.changes['6h']||w.rise.changes['3h']||w.rise.changes['1h']))||w.rise.since_prev||{};
+    const dM=(ch.delta_m!=null)?ch.delta_m:null, dt=(ch.over_hours!=null)?ch.over_hours:null;
+    const tw=w.rise.trend||'';
+    let dir='flat';
+    if(tw.includes('ขึ้น')||(dM!=null&&dM>=WL_TREND_MIN)) dir='up';
+    else if(tw.includes('ลด')||tw.includes('ลง')||(dM!=null&&dM<=-WL_TREND_MIN)) dir='down';
+    return {dir, dCm:(dM!=null?dM*100:null), dt, source:'srv', detail:w.rise.detail||''};
+  }
+  // 2) คำนวณเองจาก history-wl.json
+  if(Array.isArray(WL_HISTORY)){
+    const pts=WL_HISTORY.filter(r=>r.key===key && r.msl!=null)
+      .map(r=>({t:new Date(r.datetime).getTime(), v:Number(r.msl)}))
+      .filter(p=>isFinite(p.t)&&isFinite(p.v)).sort((a,b)=>a.t-b.t);
+    const tr=wlTrend(pts);
+    if(tr.dir!=null) return {dir:tr.dir, dCm:tr.dCm, dt:tr.dt, source:'hist', detail:''};
+  }
+  return null;
 }
 
 /* ===== ระดับน้ำคลอง ===== */
 async function loadWaterLevel(){
   const box=$('wlCards'), msg=$('wlMsg');
   try{
+    await loadServerWL();   // โหลดแนวโน้มที่เซิร์ฟเวอร์เตรียมไว้ (ใช้เป็นหลัก)
     const res=await twFetch('wl',WL_URL,TW_TTL,d=>{
       const arr=(d.waterlevel_data&&d.waterlevel_data.data)||d.data||[];
       return arr.filter(s=>{
@@ -830,9 +880,11 @@ async function loadWaterLevel(){
       if(fb!=null && !stale && (minFree==null||fb<minFree)){ minFree=fb; minName=name; }   // ใช้คำนวณความเสี่ยงเฉพาะข้อมูลที่ไม่เก่าเกิน 6 ชม.
       const st=wlStatus(fb);
       const pct= fb==null?0 : Math.max(4,Math.min(100,(1-fb/3)*100));   // เต็มเมื่อใกล้/ล้นตลิ่ง (สเกล 3 ม.)
-      // บันทึกประวัติระดับน้ำสถานีนี้ แล้วคำนวณแนวโน้มขึ้น/ลง
-      const hist = (!stale && isFinite(wl)) ? wlRecord(st0.id, t, wl) : (lsGet(WLH_KEY(st0.id))||[]);
-      const tv = wlTrendView(wlTrend(hist));
+      // แนวโน้มน้ำขึ้น/ลง: ใช้ข้อมูลเซิร์ฟเวอร์เป็นหลัก (latest.json → history-wl.json) แล้ว fallback เป็นที่จดเอง
+      const hist = (!stale && isFinite(wl)) ? wlRecord(st0.id, t, wl) : (lsGet(WLH_KEY(st0.id))||[]);  // ยังจดไว้สำรอง
+      let tr = serverTrend(wlKeyOf(st0, amp));
+      if(!tr){ const tl=wlTrend(hist); if(tl.dir!=null) tr={dir:tl.dir, dCm:tl.dCm, dt:tl.dt, source:'local', detail:''}; }
+      const tv = wlTrendView(tr);
       html+=`<div class="wl-card">
         <div class="wl-top"><div><div class="wl-name">${name}</div>
           <div class="wl-sub">${[river,tum&&('ต.'+tum),amp&&('อ.'+amp)].filter(Boolean).join(' · ')}</div></div>
@@ -842,7 +894,7 @@ async function loadWaterLevel(){
         <div class="wl-big">${isFinite(wl)?fmt(wl,2):'–'}<small> ม.รทก.</small></div>
         <div class="wl-row"><span>ตลิ่งต่ำสุด</span><b>${isFinite(bank)?fmt(bank,2)+' ม.':'–'}</b></div>
         <div class="wl-row"><span>เหลืออีกถึงตลิ่ง</span><b>${fb==null?'–':fmt(fb,2)+' ม.'}</b></div>
-        <div class="wl-row">${tv.detail}</div>
+        <div class="wl-row"${tv.title?` title="${tv.title.replace(/"/g,'&quot;')}"`:''}>${tv.detail}</div>
         <div class="wl-bar"><i style="width:${pct}%;background:${st.bar}"></i></div>
         <div class="wl-row" style="margin-top:8px"><span>${tsTxt?('วัดเมื่อ '+tsTxt):'—'}</span>${stale?'<b style="color:var(--orange)">ข้อมูลเก่า</b>':''}</div>
       </div>`;
