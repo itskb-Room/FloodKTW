@@ -1,0 +1,170 @@
+[
+  {
+    "key": "janah",
+    "datetime": "2026-10-22T04:50:00.000Z",
+    "datetime_th": "22/10/2569 11:50:00",
+    "msl": 2.92,
+    "diff_wl_bank": 1.83
+  },
+  {
+    "key": "nathawi",
+    "datetime": "2026-10-22T04:50:00.000Z",
+    "datetime_th": "22/10/2569 11:50:00",
+    "msl": 19.82,
+    "diff_wl_bank": 2.89
+  },
+  {
+    "key": "janah",
+    "datetime": "2026-10-22T09:50:00.000Z",
+    "datetime_th": "22/10/2569 16:50:00",
+    "msl": 2.97,
+    "diff_wl_bank": 1.78
+  },
+  {
+    "key": "nathawi",
+    "datetime": "2026-10-22T09:50:00.000Z",
+    "datetime_th": "22/10/2569 16:50:00",
+    "msl": 19.86,
+    "diff_wl_bank": 2.85
+  },
+  {
+    "key": "janah",
+    "datetime": "2026-10-22T15:00:00.000Z",
+    "datetime_th": "22/10/2569 22:00:00",
+    "msl": 2.8,
+    "diff_wl_bank": 1.95
+  },
+  {
+    "key": "nathawi",
+    "datetime": "2026-10-22T15:00:00.000Z",
+    "datetime_th": "22/10/2569 22:00:00",
+    "msl": 19.81,
+    "diff_wl_bank": 2.9
+  },
+  {
+    "key": "janah",
+    "datetime": "2026-10-22T19:00:00.000Z",
+    "datetime_th": "23/10/2569 02:00:00",
+    "msl": 3.01,
+    "diff_wl_bank": 1.74
+  },
+  {
+    "key": "nathawi",
+    "datetime": "2026-10-22T19:00:00.000Z",
+    "datetime_th": "23/10/2569 02:00:00",
+    "msl": 19.84,
+    "diff_wl_bank": 2.87
+  },
+  {
+    "key": "janah",
+    "datetime": "2026-10-22T22:10:00.000Z",
+    "datetime_th": "23/10/2569 05:10:00",
+    "msl": 2.89,
+    "diff_wl_bank": 1.86
+  },
+  {
+    "key": "nathawi",
+    "datetime": "2026-10-22T22:10:00.000Z",
+    "datetime_th": "23/10/2569 05:10:00",
+    "msl": 19.84,
+    "diff_wl_bank": 2.87
+  },
+  {
+    "key": "janah",
+    "datetime": "2026-10-23T00:30:00.000Z",
+    "datetime_th": "23/10/2569 07:30:00",
+    "msl": 2.97,
+    "diff_wl_bank": 1.78
+  },
+  {
+    "key": "nathawi",
+    "datetime": "2026-10-23T00:30:00.000Z",
+    "datetime_th": "23/10/2569 07:30:00",
+    "msl": 19.81,
+    "diff_wl_bank": 2.9
+  },
+  {
+    "key": "janah",
+    "datetime": "2026-10-23T05:20:00.000Z",
+    "datetime_th": "23/10/2569 12:20:00",
+    "msl": 2.84,
+    "diff_wl_bank": 1.91
+  },
+  {
+    "key": "nathawi",
+    "datetime": "2026-10-23T05:20:00.000Z",
+    "datetime_th": "23/10/2569 12:20:00",
+    "msl": 19.75,
+    "diff_wl_bank": 2.96
+  },
+  {
+    "key": "janah",
+    "datetime": "2026-10-23T10:10:00.000Z",
+    "datetime_th": "23/10/2569 17:10:00",
+    "msl": 2.93,
+    "diff_wl_bank": 1.82
+  },
+  {
+    "key": "nathawi",
+    "datetime": "2026-10-23T10:10:00.000Z",
+    "datetime_th": "23/10/2569 17:10:00",
+    "msl": 19.53,
+    "diff_wl_bank": 3.18
+  },
+  {
+    "key": "janah",
+    "datetime": "2026-10-23T15:10:00.000Z",
+    "datetime_th": "23/10/2569 22:10:00",
+    "msl": 2.97,
+    "diff_wl_bank": 1.78
+  },
+  {
+    "key": "nathawi",
+    "datetime": "2026-10-23T15:10:00.000Z",
+    "datetime_th": "23/10/2569 22:10:00",
+    "msl": 19.67,
+    "diff_wl_bank": 3.04
+  },
+  {
+    "key": "janah",
+    "datetime": "2026-10-23T19:10:00.000Z",
+    "datetime_th": "24/10/2569 02:10:00",
+    "msl": 2.99,
+    "diff_wl_bank": 1.76
+  },
+  {
+    "key": "nathawi",
+    "datetime": "2026-10-23T19:10:00.000Z",
+    "datetime_th": "24/10/2569 02:10:00",
+    "msl": 19.86,
+    "diff_wl_bank": 2.85
+  },
+  {
+    "key": "janah",
+    "datetime": "2026-10-23T22:10:00.000Z",
+    "datetime_th": "24/10/2569 05:10:00",
+    "msl": 2.99,
+    "diff_wl_bank": 1.76
+  },
+  {
+    "key": "nathawi",
+    "datetime": "2026-10-23T22:10:00.000Z",
+    "datetime_th": "24/10/2569 05:10:00",
+    "msl": 20.01,
+    "diff_wl_bank": 2.7
+  },
+  {
+    "key": "janah",
+    "datetime": "2026-10-24T00:50:00.000Z",
+    "datetime_th": "24/10/2569 07:50:00",
+    "msl": 2.94,
+    "diff_wl_bank": 1.81
+  },
+  {
+    "key": "nathawi",
+    "datetime": "2026-10-24T00:50:00.000Z",
+    "datetime_th": "24/10/2569 07:50:00",
+    "msl": 20.27,
+    "diff_wl_bank": 2.44
+  }
+]

@@ -1,0 +1,47 @@
+name: Update flood data
+
+# รันอัตโนมัติทุก ~15 นาที + กดรันเองได้จากแท็บ Actions
+on:
+  schedule:
+    - cron: '*/15 * * * *'   # เวลา UTC (GitHub อาจดีเลย์ช่วงคิวแน่น เป็นเรื่องปกติ)
+  workflow_dispatch: {}
+
+# ให้ workflow เขียน/commit ไฟล์กลับเข้า repo ได้
+permissions:
+  contents: write
+
+# กันไม่ให้รอบใหม่ชนรอบเก่า
+concurrency:
+  group: update-flood-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate data/latest.json (+ ส่งแจ้งเตือนถ้าน้ำขึ้นข้ามเกณฑ์)
+        env:
+          # ตั้งค่าใน Settings → Secrets and variables → Actions → New repository secret
+          # ชื่อ ALERT_WEBHOOK_URL (เช่น Google Chat/Discord/Slack webhook). ถ้าไม่ตั้ง = ไม่ส่ง แค่คำนวณ
+          ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
+        run: node scripts/update-flood-data.mjs
+
+      - name: Commit if changed
+        run: |
+          git config user.name "flood-data-bot"
+          git config user.email "flood-data-bot@users.noreply.github.com"
+          git add data/latest.json data/history-wl.json data/alert-state.json
+          if git diff --staged --quiet; then
+            echo "ไม่มีข้อมูลเปลี่ยนแปลง — ข้ามการ commit"
+          else
+            git commit -m "chore: update flood data [skip ci]"
+            git push
+          fi
