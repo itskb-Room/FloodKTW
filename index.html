@@ -381,7 +381,7 @@
   <!-- WATER LEVEL (thaiwater.net) -->
   <section class="card">
     <h2>🌊 ระดับน้ำในคลอง — อ.จะนะ & อ.นาทวี (thaiwater.net)</h2>
-    <p class="hint">ดึงสดจากคลังข้อมูลน้ำแห่งชาติ (สสน./HII) เฉพาะสถานีโทรมาตรใน <b>อ.จะนะ</b> และ <b>อ.นาทวี</b> ซึ่งอยู่ในลุ่มน้ำเดียวกับ ต.ขุนตัดหวาย · “เหลืออีก … ม. ถึงตลิ่ง” ยิ่งน้อยยิ่งเสี่ยงน้ำล้นตลิ่ง</p>
+    <p class="hint">ดึงสดจากคลังข้อมูลน้ำแห่งชาติ (สสน./HII) เฉพาะสถานีโทรมาตรใน <b>อ.จะนะ</b> และ <b>อ.นาทวี</b> ซึ่งอยู่ในลุ่มน้ำเดียวกับ ต.ขุนตัดหวาย · “เหลืออีก … ม. ถึงตลิ่ง” ยิ่งน้อยยิ่งเสี่ยงน้ำล้นตลิ่ง · <b>ป้าย ▲ น้ำขึ้น / ▼ น้ำลด</b> คำนวณจากประวัติที่หน้าเว็บจดไว้เอง (ยิ่งเปิดหน้านี้บ่อย/ทิ้งไว้ ยิ่งเทียบแนวโน้มได้แม่น)</p>
     <div id="wlCards" class="wl-grid"><div class="loading">กำลังดึงระดับน้ำจาก thaiwater.net…</div></div>
     <div id="wlMsg" class="hint" style="margin:10px 0 0;"></div>
   </section>
@@ -749,6 +749,59 @@ function wlStatus(fb){
   return            {t:'ปกติ (ต่ำกว่าตลิ่ง)', c:'var(--green)',  bg:'var(--green-bg)',  bar:'#22c55e'};
 }
 
+/* ===== ประวัติระดับน้ำ (จดลง localStorage เพื่อดูแนวโน้มน้ำขึ้น/ลง) ===== */
+const WLH_KEY  = id => 'wlh:'+id;   // 1 คีย์ต่อสถานี
+const WLH_MAX  = 120;               // เก็บจุดล่าสุดสูงสุด 120 จุด
+const WLH_WINDOW = 24*3.6e6;        // ตัดจุดที่เก่ากว่า 24 ชม.
+const WL_TREND_MIN = 0.02;          // เปลี่ยน ≥ 2 ซม. จึงถือว่าขึ้น/ลง (ต่ำกว่านี้ = ทรงตัว)
+const WL_REF_WIN = 6*3.6e6;         // หาจุดอ้างอิงภายใน 6 ชม.ก่อนจุดล่าสุด
+
+// บันทึกค่าเฉพาะ "เวลาวัดใหม่" เท่านั้น — กันข้อมูลสำรอง/แคชเดิมสร้างแนวโน้มหลอก
+function wlRecord(id, measTime, wl){
+  if(id==null || measTime==null || !isFinite(wl)) return [];
+  const mt = measTime.getTime();
+  let h = lsGet(WLH_KEY(id)); if(!Array.isArray(h)) h=[];
+  const lastT = h.length ? h[h.length-1].t : null;
+  if(lastT==null || mt > lastT){ h.push({t:mt, v:wl}); }       // เวลาใหม่กว่า → เพิ่มจุด
+  else if(mt === lastT){ h[h.length-1].v = wl; }               // เวลาเดิม → อัปเดตค่า
+  else { return h; }                                           // เวลาเก่ากว่า (snapshot) → ไม่บันทึก
+  const cutoff = mt - WLH_WINDOW;
+  h = h.filter(p=>p.t>=cutoff);
+  if(h.length>WLH_MAX) h = h.slice(h.length-WLH_MAX);
+  lsSet(WLH_KEY(id), h);
+  return h;
+}
+// คำนวณแนวโน้มจากประวัติ: เทียบจุดล่าสุดกับจุดอ้างอิง (เก่าสุดภายใน 6 ชม.)
+function wlTrend(h){
+  if(!h || h.length<2) return {dir:null, n:h?h.length:0};
+  const last=h[h.length-1], refWin=last.t-WL_REF_WIN;
+  let ref=null;
+  for(const p of h){ if(p.t>=refWin && p.t<last.t){ ref=p; break; } }  // h เรียงเวลาจากเก่า→ใหม่
+  if(!ref) ref=h[h.length-2];
+  const dt=(last.t-ref.t)/3.6e6;                 // ชั่วโมง
+  if(dt<=0) return {dir:null, n:h.length};
+  const dM=last.v-ref.v, dCm=dM*100, rate=dCm/dt;
+  let dir='flat';
+  if(dM>=WL_TREND_MIN) dir='up'; else if(dM<=-WL_TREND_MIN) dir='down';
+  return {dir, dCm, rate, dt, n:h.length};
+}
+// สร้าง badge + บรรทัดรายละเอียดแนวโน้ม
+function wlTrendView(tr){
+  if(!tr || tr.dir==null)
+    return {badge:'', detail:'<span>แนวโน้ม</span><b style="color:var(--muted)">กำลังเก็บข้อมูล…</b>'};
+  const abs=Math.abs(tr.dCm), rateTxt=fmt(Math.abs(tr.rate),1)+' ซม./ชม.';
+  const spanTxt = tr.dt>=1 ? fmt(tr.dt,1)+' ชม.' : Math.round(tr.dt*60)+' นาที';
+  let ic,word,col,bg;
+  if(tr.dir==='up'){        ic='▲'; word='น้ำขึ้น'; col='var(--orange)'; bg='var(--orange-bg)'; }
+  else if(tr.dir==='down'){ ic='▼'; word='น้ำลด';  col='var(--green)';  bg='var(--green-bg)'; }
+  else {                    ic='▬'; word='ทรงตัว'; col='var(--muted)';  bg='var(--panel)'; }
+  const badge=`<span class="wl-badge" style="color:${col};background:${bg}">${ic} ${word}</span>`;
+  const detail = tr.dir==='flat'
+    ? `<span>แนวโน้ม</span><b style="color:${col}">▬ ทรงตัว <small style="color:var(--muted);font-weight:500">(±${fmt(abs,0)} ซม./${spanTxt})</small></b>`
+    : `<span>แนวโน้ม</span><b style="color:${col}">${ic} ${word} ${fmt(abs,0)} ซม. ใน ${spanTxt} <small style="color:var(--muted);font-weight:500">(${rateTxt})</small></b>`;
+  return {badge, detail};
+}
+
 /* ===== ระดับน้ำคลอง ===== */
 async function loadWaterLevel(){
   const box=$('wlCards'), msg=$('wlMsg');
@@ -777,13 +830,19 @@ async function loadWaterLevel(){
       if(fb!=null && !stale && (minFree==null||fb<minFree)){ minFree=fb; minName=name; }   // ใช้คำนวณความเสี่ยงเฉพาะข้อมูลที่ไม่เก่าเกิน 6 ชม.
       const st=wlStatus(fb);
       const pct= fb==null?0 : Math.max(4,Math.min(100,(1-fb/3)*100));   // เต็มเมื่อใกล้/ล้นตลิ่ง (สเกล 3 ม.)
+      // บันทึกประวัติระดับน้ำสถานีนี้ แล้วคำนวณแนวโน้มขึ้น/ลง
+      const hist = (!stale && isFinite(wl)) ? wlRecord(st0.id, t, wl) : (lsGet(WLH_KEY(st0.id))||[]);
+      const tv = wlTrendView(wlTrend(hist));
       html+=`<div class="wl-card">
         <div class="wl-top"><div><div class="wl-name">${name}</div>
           <div class="wl-sub">${[river,tum&&('ต.'+tum),amp&&('อ.'+amp)].filter(Boolean).join(' · ')}</div></div>
-          <span class="wl-badge" style="color:${st.c};background:${st.bg}">${st.t}</span></div>
+          <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">
+            <span class="wl-badge" style="color:${st.c};background:${st.bg}">${st.t}</span>
+            ${tv.badge}</div></div>
         <div class="wl-big">${isFinite(wl)?fmt(wl,2):'–'}<small> ม.รทก.</small></div>
         <div class="wl-row"><span>ตลิ่งต่ำสุด</span><b>${isFinite(bank)?fmt(bank,2)+' ม.':'–'}</b></div>
         <div class="wl-row"><span>เหลืออีกถึงตลิ่ง</span><b>${fb==null?'–':fmt(fb,2)+' ม.'}</b></div>
+        <div class="wl-row">${tv.detail}</div>
         <div class="wl-bar"><i style="width:${pct}%;background:${st.bar}"></i></div>
         <div class="wl-row" style="margin-top:8px"><span>${tsTxt?('วัดเมื่อ '+tsTxt):'—'}</span>${stale?'<b style="color:var(--orange)">ข้อมูลเก่า</b>':''}</div>
       </div>`;
