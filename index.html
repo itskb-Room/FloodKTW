@@ -921,13 +921,19 @@ function serverTrend(key){
   // 1) ค่าที่เซิร์ฟเวอร์คำนวณไว้แล้ว
   const w = WL_LATEST && WL_LATEST.waterlevel && WL_LATEST.waterlevel[key];
   if(w && w.rise){
+    // เลือกช่วงเวลาที่ยาวที่สุดที่มี (6h > 3h > 1h > since_prev) เพื่อความเสถียร —
+    // แล้วเอา "ทั้งทิศทางและตัวเลข" มาจากช่วงเดียวกัน (กันกรณีทิศทางกับตัวเลขมาคนละช่วงจนขัดกันเอง)
     const ch=(w.rise.changes&&(w.rise.changes['6h']||w.rise.changes['3h']||w.rise.changes['1h']))||w.rise.since_prev||{};
     const dM=(ch.delta_m!=null)?ch.delta_m:null, dt=(ch.over_hours!=null)?ch.over_hours:null;
-    const tw=w.rise.trend||'';
     let dir='flat';
-    if(tw.includes('ขึ้น')||(dM!=null&&dM>=WL_TREND_MIN)) dir='up';
-    else if(tw.includes('ลด')||tw.includes('ลง')||(dM!=null&&dM<=-WL_TREND_MIN)) dir='down';
-    return {dir, dCm:(dM!=null?dM*100:null), dt, source:'srv', detail:w.rise.detail||''};
+    if(dM!=null){ if(dM>=WL_TREND_MIN) dir='up'; else if(dM<=-WL_TREND_MIN) dir='down'; }
+    // สร้างคำอธิบายให้ตรงกับช่วงเวลาที่ใช้จริง (ไม่ใช้ trend word ของเซิร์ฟเวอร์ซึ่งอิงช่วงสั้นกว่า)
+    let detail=w.rise.detail||''; const cur=Number(w.waterlevel_msl);
+    if(dM!=null && dt!=null && ch.from_msl!=null){
+      const word = dir==='up'?'น้ำขึ้น':dir==='down'?'น้ำลด':'ทรงตัว';
+      detail = word+' '+Math.abs(dM*100).toFixed(0)+' ซม. ในช่วง ~'+Number(dt).toFixed(1)+' ชม. (จาก '+(ch.from_datetime_th||'')+' น. ที่ '+ch.from_msl+' → ปัจจุบัน '+(isFinite(cur)?cur:'?')+' ม.รทก.)';
+    }
+    return {dir, dCm:(dM!=null?dM*100:null), dt, source:'srv', detail};
   }
   // 2) คำนวณเองจาก history-wl.json
   if(Array.isArray(WL_HISTORY)){
