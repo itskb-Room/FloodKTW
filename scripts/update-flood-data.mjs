@@ -191,8 +191,9 @@ function computeRise(history, key, current) {
     }
   }
 
-  // แนวโน้มหลัก: ใช้ช่วง 3ชม. ถ้ามี ไม่งั้นใช้ค่าอ่านก่อนหน้า
-  const basis = changes['3h'] || (prev ? { delta_m: +(current.waterlevel_msl - prev.msl).toFixed(3), over_hours: +((nowMs - new Date(prev.datetime).getTime()) / 3.6e6).toFixed(1), from_datetime: prev.datetime, from_datetime_th: fmtTH(prev.datetime), from_msl: prev.msl } : null);
+  // แนวโน้มหลัก: ใช้ช่วงยาวสุดที่มี (6ชม. > 3ชม. > 1ชม.) เพื่อความเสถียร ให้ตรงกับการแสดงผลบนหน้าเว็บ
+  // (เดิมใช้ 3ชม. ทำให้แนวโน้มวูบวาบตามการเด้งสั้น ๆ/น้ำทะเลหนุน จนขัดกับตัวเลขช่วง 6ชม.)
+  const basis = changes['6h'] || changes['3h'] || changes['1h'] || (prev ? { delta_m: +(current.waterlevel_msl - prev.msl).toFixed(3), over_hours: +((nowMs - new Date(prev.datetime).getTime()) / 3.6e6).toFixed(1), from_datetime: prev.datetime, from_datetime_th: fmtTH(prev.datetime), from_msl: prev.msl } : null);
   let trend = 'ไม่ทราบ (ยังเก็บประวัติไม่พอ)', detail = null;
   if (basis) {
     const d = basis.delta_m;
