@@ -130,6 +130,8 @@
   .wl-bar{height:8px; border-radius:5px; background:var(--line); margin-top:10px; overflow:hidden;}
   .wl-bar i{display:block; height:100%; border-radius:5px; transition:width .5s;}
   #flowMap{height:460px; border-radius:12px; overflow:hidden; z-index:0; background:var(--panel-2);}
+  #homeMap{height:340px; border-radius:12px; overflow:hidden; z-index:0; background:var(--panel-2); margin-top:12px;}
+  .home-in{border:1px solid var(--line); background:var(--panel); color:var(--ink); padding:7px 11px; border-radius:9px; font:inherit; font-size:.85rem; width:210px; max-width:62vw;}
   .flow-ctl{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; font-size:.83rem; color:var(--muted);}
   .flow-ctl .seg{display:inline-flex; border:1px solid var(--line); border-radius:9px; overflow:hidden;}
   .flow-ctl .seg button{border:0; background:var(--panel); color:var(--ink); padding:6px 11px; font:inherit; font-size:.82rem; cursor:pointer;}
@@ -398,6 +400,22 @@
     <div id="flowLegend" class="flow-ctl" style="display:none"></div>
     <div class="flow-stat" id="flowStat" style="display:none"></div>
     <div class="disc" style="margin-top:12px;">⚠️ เป็นการวิเคราะห์เชิงภูมิประเทศเบื้องต้น (terrain-based) ใช้ชี้ทิศทางการไหลและพื้นที่ลุ่มเสี่ยง — <b>ไม่ใช่แบบจำลองน้ำท่วมเชิงไฮดรอลิก</b> DEM 90 ม. ไม่เห็นคันคลอง/ถนน/คันนา และยังไม่รวมปริมาณฝน–น้ำท่า น้ำทะเลหนุน หรือการระบายจริง ใช้ประกอบการเฝ้าระวังเท่านั้น</div>
+  </section>
+
+  <!-- HOME RISK CHECK -->
+  <section class="card" id="homeCard">
+    <h2>🏠 บ้านฉันเสี่ยงน้ำท่วมไหม?</h2>
+    <p class="hint">เลือกตำแหน่งบ้านหรือจุดที่สนใจ แล้วระบบจะประเมินความเสี่ยงน้ำท่วมถึงจากภูมิประเทศ (ค่า HAND — ยิ่งต่ำยิ่งใกล้ลำน้ำ/เสี่ยง) พร้อมบอกว่าน้ำบริเวณนั้นไหลไปทางไหน · ใช้หลักการเดียวกับการวิเคราะห์ GIS ด้านบน</p>
+    <div class="flow-ctl">
+      <button class="btn" id="homeGeo">📍 ใช้ตำแหน่งของฉัน</button>
+      <span>หรือพิมพ์พิกัด</span>
+      <input id="homeLatLon" class="home-in" placeholder="เช่น 6.7936, 100.7051" />
+      <button class="btn" id="homeCheck">ตรวจสอบ</button>
+      <span id="homeMsg"></span>
+    </div>
+    <div class="flow-prog" id="homeProg" style="display:none"><i id="homeProgBar"></i></div>
+    <div id="homeResult" style="display:none"></div>
+    <div id="homeMap" style="display:none"></div>
   </section>
 
   <div class="two">
@@ -851,6 +869,36 @@ function wlTrendView(tr){
   return {badge, detail, title:tr.detail||''};
 }
 
+// กราฟเส้นเล็ก (sparkline) ระดับน้ำย้อนหลังจาก history-wl.json + เส้นประตลิ่ง
+function wlSparkline(key, bank){
+  if(!key || !Array.isArray(WL_HISTORY)) return '';
+  const all=WL_HISTORY.filter(r=>r.key===key && r.msl!=null)
+    .map(r=>({t:new Date(r.datetime).getTime(), v:Number(r.msl)}))
+    .filter(p=>isFinite(p.t)&&isFinite(p.v)).sort((a,b)=>a.t-b.t);
+  if(all.length<2) return '';
+  const last=all[all.length-1].t, since=last-36*3.6e6;
+  let d=all.filter(p=>p.t>=since); if(d.length<2) d=all.slice(-Math.min(all.length,6));
+  const W=240,H=46,padL=3,padR=3,padT=6,padB=12;
+  let vmin=Math.min.apply(null,d.map(p=>p.v)), vmax=Math.max.apply(null,d.map(p=>p.v));
+  let pad=(vmax-vmin)*0.18||0.05; vmin-=pad; vmax+=pad;
+  const tmin=d[0].t, tspan=Math.max(1,d[d.length-1].t-tmin);
+  const x=t=> padL+(W-padL-padR)*(t-tmin)/tspan;
+  const y=v=> padT+(H-padT-padB)*(1-(v-vmin)/(vmax-vmin));
+  const pl=d.map(p=>x(p.t).toFixed(1)+','+y(p.v).toFixed(1)).join(' ');
+  const lp=d[d.length-1], rise=lp.v-d[0].v;
+  const col=rise>=0.02?'#ea580c':rise<=-0.02?'#16a34a':'#64748b';
+  let bankLine='';
+  if(isFinite(bank)&&bank<=vmax&&bank>=vmin){ const by=y(bank).toFixed(1);
+    bankLine=`<line x1="${padL}" y1="${by}" x2="${W-padR}" y2="${by}" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 3"/><text x="${W-padR}" y="${(parseFloat(by)-2).toFixed(1)}" text-anchor="end" font-size="8" fill="#dc2626">ตลิ่ง</text>`; }
+  const t0=new Date(tmin).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit'});
+  const t1=new Date(lp.t).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit'});
+  return `<div style="margin-top:8px"><div class="wl-sub" style="margin-bottom:2px">📉 ระดับน้ำย้อนหลัง (${all.length} จุด)</div>
+    <svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="display:block">
+    ${bankLine}<polyline points="${pl}" fill="none" stroke="${col}" stroke-width="1.6"/>
+    <circle cx="${x(lp.t).toFixed(1)}" cy="${y(lp.v).toFixed(1)}" r="2.4" fill="${col}"/></svg>
+    <div class="wl-row" style="font-size:.72rem;margin-top:0"><span>${t0}</span><span>${t1}</span></div></div>`;
+}
+
 /* ===== แนวโน้มจากข้อมูลฝั่งเซิร์ฟเวอร์ (GitHub Actions → data/*.json) ===== */
 let WL_LATEST=null, WL_HISTORY=null;
 const WL_KEY_MAP={'849':'janah','850':'nathawi'};   // station id → key ในไฟล์ data
@@ -923,9 +971,11 @@ async function loadWaterLevel(){
       const pct= fb==null?0 : Math.max(4,Math.min(100,(1-fb/3)*100));   // เต็มเมื่อใกล้/ล้นตลิ่ง (สเกล 3 ม.)
       // แนวโน้มน้ำขึ้น/ลง: ใช้ข้อมูลเซิร์ฟเวอร์เป็นหลัก (latest.json → history-wl.json) แล้ว fallback เป็นที่จดเอง
       const hist = (!stale && isFinite(wl)) ? wlRecord(st0.id, t, wl) : (lsGet(WLH_KEY(st0.id))||[]);  // ยังจดไว้สำรอง
-      let tr = serverTrend(wlKeyOf(st0, amp));
+      const wlk = wlKeyOf(st0, amp);
+      let tr = serverTrend(wlk);
       if(!tr){ const tl=wlTrend(hist); if(tl.dir!=null) tr={dir:tl.dir, dCm:tl.dCm, dt:tl.dt, source:'local', detail:''}; }
       const tv = wlTrendView(tr);
+      const spark = wlSparkline(wlk, bank);
       html+=`<div class="wl-card">
         <div class="wl-top"><div><div class="wl-name">${name}</div>
           <div class="wl-sub">${[river,tum&&('ต.'+tum),amp&&('อ.'+amp)].filter(Boolean).join(' · ')}</div></div>
@@ -937,6 +987,7 @@ async function loadWaterLevel(){
         <div class="wl-row"><span>เหลืออีกถึงตลิ่ง</span><b>${fb==null?'–':fmt(fb,2)+' ม.'}</b></div>
         <div class="wl-row"${tv.title?` title="${tv.title.replace(/"/g,'&quot;')}"`:''}>${tv.detail}</div>
         <div class="wl-bar"><i style="width:${pct}%;background:${st.bar}"></i></div>
+        ${spark}
         <div class="wl-row" style="margin-top:8px"><span>${tsTxt?('วัดเมื่อ '+tsTxt):'—'}</span>${stale?'<b style="color:var(--orange)">ข้อมูลเก่า</b>':''}</div>
       </div>`;
     });
@@ -1111,40 +1162,55 @@ async function omElevation(lats, lons){
   const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status);
   const d=await r.json(); if(!d.elevation) throw new Error('ไม่มีข้อมูลความสูง'); return d.elevation;
 }
+// สร้างกริด DEM + คำนวณอุทกวิทยา (ใช้ร่วมทั้งการ์ด GIS และ "บ้านฉันเสี่ยงไหม")
+async function buildFlowData(cLat, cLon, Rkm, onProg){
+  const N=Math.max(28, Math.min(60, Math.round(2*Rkm*1000/180)+1));
+  const dLat=Rkm*1000/111320, dLon=Rkm*1000/(111320*Math.cos(cLat*Math.PI/180));
+  const latMax=cLat+dLat, latMin=cLat-dLat, lonMin=cLon-dLon, lonMax=cLon+dLon;
+  const cellM=(2*Rkm*1000)/(N-1);
+  const lat=i=>latMax-(latMax-latMin)*i/(N-1);
+  const lon=j=>lonMin+(lonMax-lonMin)*j/(N-1);
+  const cacheKey='flowdem:'+cLat.toFixed(4)+','+cLon.toFixed(4)+':R'+Rkm+':N'+N;
+  let dem=lsGet(cacheKey);
+  if(Array.isArray(dem)&&dem.length===N*N){ dem=Float64Array.from(dem); onProg&&onProg(70,'ใช้ข้อมูลความสูงที่เก็บไว้'); }
+  else{
+    dem=new Float64Array(N*N); const pts=[];
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++) pts.push([r*N+c, lat(r), lon(c)]);
+    const CH=100;
+    for(let s=0;s<pts.length;s+=CH){
+      const chunk=pts.slice(s,s+CH);
+      const ev=await omElevation(chunk.map(p=>p[1].toFixed(5)), chunk.map(p=>p[2].toFixed(5)));
+      chunk.forEach((p,k)=>{ dem[p[0]]=(ev[k]!=null)?ev[k]:NaN; });
+      onProg&&onProg(Math.round(5+60*(s+CH)/pts.length), 'ดึงความสูง '+Math.min(pts.length,s+CH)+'/'+pts.length+' จุด…');
+    }
+    try{ lsSet(cacheKey, Array.from(dem, v=>Math.round(v*10)/10)); }catch(e){}
+  }
+  onProg&&onProg(80,'กำลังคำนวณทิศทางการไหล…'); await new Promise(r=>setTimeout(r,20));
+  const thr=Math.max(12, Math.round(N*N*0.012));
+  const Hc=hydroCompute(dem, N, N, cellM, {streamThreshold:thr});
+  const center=Math.floor(N/2)*N+Math.floor(N/2);
+  const valid=dem.filter(v=>!isNaN(v));
+  return {dem,N,cellM,H:Hc,bounds:[[latMin,lonMin],[latMax,lonMax]],lat,lon,center,Rkm,
+    demMin:Math.min.apply(null,valid), demMax:Math.max.apply(null,valid)};
+}
+// หาเซลล์ในกริดที่ใกล้พิกัดที่สุด + ระยะถึงลำน้ำใกล้สุด
+function cellAt(fd, plat, plon){
+  const b=fd.bounds, N=fd.N, latMin=b[0][0],lonMin=b[0][1],latMax=b[1][0],lonMax=b[1][1];
+  let r=Math.round((latMax-plat)/(latMax-latMin)*(N-1)), c=Math.round((plon-lonMin)/(lonMax-lonMin)*(N-1));
+  r=Math.max(0,Math.min(N-1,r)); c=Math.max(0,Math.min(N-1,c)); return r*N+c;
+}
+function nearestStreamDist(fd, i){
+  const H=fd.H,N=fd.N,cellM=fd.cellM, r0=(i/N)|0,c0=i%N; let best=Infinity;
+  for(let k=0;k<N*N;k++){ if(H.isStream[k]){ const r=(k/N)|0,c=k%N; const d=Math.hypot(r-r0,c-c0)*cellM; if(d<best)best=d; } }
+  return isFinite(best)?best:null;
+}
 async function runFlowAnalysis(){
   const btn=$('flowRun'), msg=$('flowMsg'), prog=$('flowProg'), bar=$('flowProgBar');
   const Rkm=parseFloat($('flowRadius').value)||4;
   btn.disabled=true; prog.style.display='block'; bar.style.width='2%'; msg.textContent='กำลังเตรียมกริด…';
   try{
-    const N=Math.max(30, Math.min(60, Math.round(2*Rkm*1000/180)+1));
-    const dLat=Rkm*1000/111320, dLon=Rkm*1000/(111320*Math.cos(LAT*Math.PI/180));
-    const latMax=LAT+dLat, latMin=LAT-dLat, lonMin=LON-dLon, lonMax=LON+dLon;
-    const cellM=(2*Rkm*1000)/(N-1);
-    const lat=i=>latMax-(latMax-latMin)*i/(N-1);
-    const lon=j=>lonMin+(lonMax-lonMin)*j/(N-1);
-    const cacheKey='flowdem:'+LAT.toFixed(4)+','+LON.toFixed(4)+':R'+Rkm+':N'+N;
-    let dem=lsGet(cacheKey);
-    if(Array.isArray(dem)&&dem.length===N*N){ dem=Float64Array.from(dem); msg.textContent='ใช้ข้อมูลความสูงที่เก็บไว้'; bar.style.width='70%'; }
-    else{
-      dem=new Float64Array(N*N); const pts=[];
-      for(let r=0;r<N;r++)for(let c=0;c<N;c++) pts.push([r*N+c, lat(r), lon(c)]);
-      const CH=100;
-      for(let s=0;s<pts.length;s+=CH){
-        const chunk=pts.slice(s,s+CH);
-        const ev=await omElevation(chunk.map(p=>p[1].toFixed(5)), chunk.map(p=>p[2].toFixed(5)));
-        chunk.forEach((p,k)=>{ dem[p[0]]=(ev[k]!=null)?ev[k]:NaN; });
-        bar.style.width=(5+60*(s+CH)/pts.length).toFixed(0)+'%';
-        msg.textContent='ดึงความสูง '+Math.min(pts.length,s+CH)+'/'+pts.length+' จุด…';
-      }
-      try{ lsSet(cacheKey, Array.from(dem, v=>Math.round(v*10)/10)); }catch(e){}
-    }
-    msg.textContent='กำลังคำนวณทิศทางการไหล…'; bar.style.width='80%'; await new Promise(r=>setTimeout(r,20));
-    const thr=Math.max(12, Math.round(N*N*0.012));
-    const Hc=hydroCompute(dem, N, N, cellM, {streamThreshold:thr});
-    const center=Math.floor(N/2)*N+Math.floor(N/2);
-    const valid=dem.filter(v=>!isNaN(v));
-    flowData={dem,N,cellM,H:Hc,bounds:[[latMin,lonMin],[latMax,lonMax]],lat,lon,center,Rkm,
-      demMin:Math.min.apply(null,valid), demMax:Math.max.apply(null,valid)};
+    flowData = await buildFlowData(LAT, LON, Rkm, (pct,m)=>{ bar.style.width=pct+'%'; if(m) msg.textContent=m; });
+    const N=flowData.N, cellM=flowData.cellM;
     bar.style.width='95%';
     ensureFlowMap(); renderFlowLayer(currentFlowLayer); renderFlowStats();
     $('flowMap').style.display='block'; $('flowControls').style.display='flex';
@@ -1242,6 +1308,77 @@ $('flowRun').addEventListener('click', runFlowAnalysis);
 $('flowLayers').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) renderFlowLayer(b.dataset.layer); });
 $('flowArrows').addEventListener('change', ()=>renderFlowLayer(currentFlowLayer));
 $('flowPath').addEventListener('change', ()=>{ renderFlowPath(); });
+
+/* ===== บ้านฉันเสี่ยงน้ำท่วมไหม (ประเมิน HAND ที่จุดผู้ใช้) ===== */
+let homeMap=null, homeOverlay=null, homeLayers=null;
+function handCanvas(fd){
+  const N=fd.N, H=fd.H, sc=Math.max(6,Math.round(420/N));
+  const cv=document.createElement('canvas'); cv.width=N*sc; cv.height=N*sc; const ctx=cv.getContext('2d');
+  for(let i=0;i<N*N;i++){ const col=handColor(H.hand[i]); if(col){ const r=(i/N)|0,c=i%N; ctx.fillStyle=col; ctx.fillRect(c*sc,r*sc,sc,sc);} }
+  ctx.fillStyle='rgba(29,78,216,.85)';
+  for(let i=0;i<N*N;i++){ if(H.isStream[i]){ const r=(i/N)|0,c=i%N; ctx.fillRect(c*sc+sc*0.25,r*sc+sc*0.25,sc*0.5,sc*0.5);} }
+  return cv;
+}
+async function checkHome(plat, plon){
+  const msg=$('homeMsg'), prog=$('homeProg'), bar=$('homeProgBar'), res=$('homeResult');
+  prog.style.display='block'; bar.style.width='3%'; res.style.display='none'; msg.textContent='กำลังประเมิน…';
+  try{
+    let fd=null;
+    if(flowData){ const b=flowData.bounds; if(plat<=b[1][0]&&plat>=b[0][0]&&plon<=b[1][1]&&plon>=b[0][1]) fd=flowData; }
+    if(!fd) fd=await buildFlowData(plat, plon, 3, (pct,m)=>{ bar.style.width=pct+'%'; if(m)msg.textContent=m; });
+    bar.style.width='90%';
+    const N=fd.N, i=cellAt(fd,plat,plon), hand=fd.H.hand[i], elev=fd.dem[i], dStream=nearestStreamDist(fd,i);
+    const path=fd.H.pathFrom(i); let flowsTo=null;
+    if(path.length>1){ const r0=(i/N)|0,c0=i%N; let tgt=path[path.length-1];
+      for(const idx of path){ const rr=(idx/N)|0,cc=idx%N; if(Math.hypot(rr-r0,cc-c0)*fd.cellM>=800){tgt=idx;break;} }
+      const r1=(tgt/N)|0,c1=tgt%N; flowsTo=compass8(Math.atan2((c1-c0)*Math.cos(plat*Math.PI/180),(r0-r1))*180/Math.PI); }
+    let lv,cls,txt,adv;
+    if(isNaN(hand)){ lv='ไม่มีข้อมูล';cls='green';txt='ดึงข้อมูลความสูงจุดนี้ไม่ได้';adv=''; }
+    else if(hand<0.5){ lv='สูงมาก';cls='red';txt='พื้นที่ลุ่มต่ำติดลำน้ำ เสี่ยงน้ำท่วมถึงสูงมาก';adv='เตรียมยกของขึ้นที่สูงและพร้อมอพยพเมื่อมีฝนหนัก'; }
+    else if(hand<1){ lv='สูง';cls='orange';txt='อยู่ต่ำกว่าระดับตลิ่งไม่มาก เสี่ยงน้ำท่วมถึงเมื่อน้ำหลาก';adv='ติดตามระดับน้ำใกล้ชิด เตรียมแผนรับมือ'; }
+    else if(hand<2){ lv='ปานกลาง';cls='yellow';txt='เสี่ยงปานกลาง อาจท่วมเมื่อฝนหนักมากต่อเนื่อง';adv='เฝ้าระวังช่วงฝนตกหนัก'; }
+    else{ lv='ต่ำ';cls='green';txt='อยู่สูงกว่าลำน้ำพอสมควร ความเสี่ยงน้ำท่วมถึงต่ำ';adv='ความเสี่ยงต่ำในสภาวะปกติ'; }
+    res.style.display='block';
+    res.innerHTML='<div class="risk" style="margin:0 0 12px"><div class="rk-head">'+
+      '<div class="rk-badge rk-lvl-'+cls+'"><span class="ic">🏠</span><span>ความเสี่ยง: '+lv+'</span></div>'+
+      '<div style="flex:1;min-width:200px"><div class="rk-desc">'+txt+(adv?'<br><b>'+adv+'</b>':'')+'</div></div></div></div>'+
+      '<div class="flow-stat" style="margin-top:0">'+
+      stat('HAND (ความสูงเหนือลำน้ำ)', (isNaN(hand)?'–':hand.toFixed(1))+' ม.')+
+      stat('ระดับความสูงจุดนี้', (isNaN(elev)?'–':elev.toFixed(1))+' ม.')+
+      stat('น้ำจากจุดนี้ไหลไปทาง', flowsTo?'<span style="color:var(--accent)">'+flowsTo+'</span>':'—')+
+      stat('ระยะถึงลำน้ำใกล้สุด', dStream==null?'–':(dStream<1000?Math.round(dStream)+' ม.':(dStream/1000).toFixed(1)+' กม.'))+
+      '</div>';
+    ensureHomeMap(plat,plon,fd);
+    bar.style.width='100%'; msg.textContent='ประเมินเสร็จ';
+    setTimeout(()=>{prog.style.display='none';},700);
+  }catch(e){ msg.innerHTML='<span class="err">ประเมินไม่สำเร็จ ('+e.message+') — ลองใหม่อีกครั้ง</span>'; prog.style.display='none'; }
+}
+function ensureHomeMap(plat,plon,fd){
+  $('homeMap').style.display='block';
+  if(!homeMap){ homeMap=L.map('homeMap',{zoomControl:true});
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Tiles &copy; Esri'}).addTo(homeMap); }
+  if(homeOverlay){ homeMap.removeLayer(homeOverlay); }
+  homeOverlay=L.imageOverlay(handCanvas(fd).toDataURL(), fd.bounds,{opacity:0.5}).addTo(homeMap);
+  if(homeLayers){ homeMap.removeLayer(homeLayers); } homeLayers=L.layerGroup().addTo(homeMap);
+  const icon=L.divIcon({className:'',html:'<div style="font-size:22px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))">🏠</div>',iconSize:[22,22],iconAnchor:[11,20]});
+  L.marker([plat,plon],{icon}).addTo(homeLayers).bindPopup('จุดที่ประเมิน');
+  const i=cellAt(fd,plat,plon), path=fd.H.pathFrom(i), N=fd.N;
+  const pts=path.map(k=>[fd.lat((k/N)|0), fd.lon(k%N)]);
+  if(pts.length>1) L.polyline(pts,{color:'#dc2626',weight:3,opacity:.9}).addTo(homeLayers);
+  homeMap.setView([plat,plon],14);
+  setTimeout(()=>homeMap.invalidateSize(),150); setTimeout(()=>homeMap.invalidateSize(),600);
+}
+$('homeGeo').addEventListener('click', ()=>{
+  const msg=$('homeMsg'); if(!navigator.geolocation){ msg.textContent='เบราว์เซอร์ไม่รองรับระบุตำแหน่ง'; return; }
+  msg.textContent='กำลังขอตำแหน่ง…';
+  navigator.geolocation.getCurrentPosition(p=>{ $('homeLatLon').value=p.coords.latitude.toFixed(5)+', '+p.coords.longitude.toFixed(5); checkHome(p.coords.latitude,p.coords.longitude); },
+    e=>{ msg.innerHTML='<span class="err">ขอตำแหน่งไม่สำเร็จ ('+e.message+') — พิมพ์พิกัดแทนได้</span>'; }, {enableHighAccuracy:true,timeout:10000});
+});
+$('homeCheck').addEventListener('click', ()=>{
+  const v=($('homeLatLon').value||'').split(/[, ]+/).map(parseFloat).filter(x=>!isNaN(x));
+  if(v.length<2){ $('homeMsg').innerHTML='<span class="err">กรอกเป็น "ละติจูด, ลองจิจูด"</span>'; return; }
+  checkHome(v[0],v[1]);
+});
 
 /* ===== เริ่มทำงาน + auto refresh ===== */
 $('refreshBtn').addEventListener('click', ()=>{ loadWeather(); loadMultiSource(); loadWaterLevel(); loadRain(); loadRadar(); refreshTMD(); });
