@@ -1157,14 +1157,25 @@ function hydroCompute(dem, W, H, cell, opts){
 let flowMap=null, flowOverlay=null, flowPathLayer=null, flowMarker=null, flowData=null;
 const COMPASS8=['ทิศเหนือ','ทิศตะวันออกเฉียงเหนือ','ทิศตะวันออก','ทิศตะวันออกเฉียงใต้','ทิศใต้','ทิศตะวันตกเฉียงใต้','ทิศตะวันตก','ทิศตะวันตกเฉียงเหนือ'];
 function compass8(bearing){ const a=((bearing%360)+360)%360; return COMPASS8[Math.round(a/45)%8]; }
-async function omElevation(lats, lons){
+// ดึงความสูง + retry อัตโนมัติเมื่อโดน 429/เน็ตล่ม (exponential backoff) — ใช้ sleep() ที่ประกาศไว้ด้านบน
+async function omElevation(lats, lons, onRetry, tries){
+  tries=tries||0;
   const url='https://api.open-meteo.com/v1/elevation?latitude='+lats.join(',')+'&longitude='+lons.join(',');
-  const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status);
-  const d=await r.json(); if(!d.elevation) throw new Error('ไม่มีข้อมูลความสูง'); return d.elevation;
+  try{
+    const r=await fetch(url,{cache:'no-store'});
+    if(r.status===429) throw Object.assign(new Error('429'),{retry:true});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d=await r.json(); if(!d.elevation) throw new Error('ไม่มีข้อมูลความสูง'); return d.elevation;
+  }catch(e){
+    const net=/Failed|NetworkError|load failed|fetch/i.test(e.message||'');
+    if((e.retry||net) && tries<5){ const wait=1000*Math.pow(1.8,tries);
+      onRetry&&onRetry(Math.round(wait/1000)); await sleep(wait); return omElevation(lats,lons,onRetry,tries+1); }
+    throw e;
+  }
 }
 // สร้างกริด DEM + คำนวณอุทกวิทยา (ใช้ร่วมทั้งการ์ด GIS และ "บ้านฉันเสี่ยงไหม")
 async function buildFlowData(cLat, cLon, Rkm, onProg){
-  const N=Math.max(28, Math.min(60, Math.round(2*Rkm*1000/180)+1));
+  const N=Math.max(26, Math.min(56, Math.round(2*Rkm*1000/220)+1));   // ~220 ม./เซลล์ ลดจำนวน request
   const dLat=Rkm*1000/111320, dLon=Rkm*1000/(111320*Math.cos(cLat*Math.PI/180));
   const latMax=cLat+dLat, latMin=cLat-dLat, lonMin=cLon-dLon, lonMax=cLon+dLon;
   const cellM=(2*Rkm*1000)/(N-1);
@@ -1176,12 +1187,16 @@ async function buildFlowData(cLat, cLon, Rkm, onProg){
   else{
     dem=new Float64Array(N*N); const pts=[];
     for(let r=0;r<N;r++)for(let c=0;c<N;c++) pts.push([r*N+c, lat(r), lon(c)]);
-    const CH=100;
-    for(let s=0;s<pts.length;s+=CH){
+    const CH=100, nChunks=Math.ceil(pts.length/CH);
+    for(let s=0,ci=0;s<pts.length;s+=CH,ci++){
       const chunk=pts.slice(s,s+CH);
-      const ev=await omElevation(chunk.map(p=>p[1].toFixed(5)), chunk.map(p=>p[2].toFixed(5)));
+      const done=Math.min(pts.length,s+CH);
+      onProg&&onProg(Math.round(5+60*s/pts.length), 'ดึงความสูง '+done+'/'+pts.length+' จุด…');
+      const ev=await omElevation(chunk.map(p=>p[1].toFixed(5)), chunk.map(p=>p[2].toFixed(5)),
+        (sec)=>onProg&&onProg(Math.round(5+60*s/pts.length), 'เซิร์ฟเวอร์จำกัดชั่วคราว รออีก '+sec+' วิ แล้วลองใหม่… ('+done+'/'+pts.length+')'));
       chunk.forEach((p,k)=>{ dem[p[0]]=(ev[k]!=null)?ev[k]:NaN; });
-      onProg&&onProg(Math.round(5+60*(s+CH)/pts.length), 'ดึงความสูง '+Math.min(pts.length,s+CH)+'/'+pts.length+' จุด…');
+      onProg&&onProg(Math.round(5+60*done/pts.length), 'ดึงความสูง '+done+'/'+pts.length+' จุด…');
+      if(ci<nChunks-1) await sleep(350);   // หน่วงกัน 429
     }
     try{ lsSet(cacheKey, Array.from(dem, v=>Math.round(v*10)/10)); }catch(e){}
   }
