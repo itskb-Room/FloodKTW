@@ -72,6 +72,26 @@
   .stat .lab{font-size:.8rem; color:var(--muted); display:flex; align-items:center; gap:6px;}
   .stat .val{font-size:1.7rem; font-weight:700; font-variant-numeric:tabular-nums; margin-top:4px; letter-spacing:-.02em;}
   .stat .val small{font-size:.85rem; font-weight:500; color:var(--muted);}
+  /* สีช่วยแบ่งหมวดข้อมูล ไม่ใช่สีแสดงระดับเตือนภัย */
+  .daily-summary-card{border-inline-start:5px solid #8b5cf6;background:linear-gradient(120deg,color-mix(in srgb,#8b5cf6 7%,var(--panel)),var(--panel) 75%);}
+  .rain-timing-card{border-inline-start:5px solid #0ea5e9;background:linear-gradient(120deg,color-mix(in srgb,#0ea5e9 8%,var(--panel)),var(--panel) 75%);}
+  .daily-summary-card h2,.rain-timing-card h2{display:flex;align-items:center;gap:8px;}
+  #dailySummaryMeta,#rainTimingMeta{display:inline-block;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 10px;color:var(--ink);font-variant-numeric:tabular-nums;}
+  #dailySummaryText{padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:10px;line-height:1.85;margin:8px 0 12px;}
+  .daily-summary-card details{border-top:1px solid var(--line);padding-top:12px;margin-top:12px;}
+  .daily-summary-card summary{cursor:pointer;color:var(--accent);font-weight:600;padding:4px 0;}
+  .daily-summary-card .btn{background:var(--accent-soft);color:var(--accent);margin:4px 0;text-decoration:none;}
+  #rainTiming{padding:14px 18px;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));border-radius:12px;background:var(--accent-soft);color:var(--ink);font-size:1.03rem;font-weight:600;line-height:2.1;font-variant-numeric:tabular-nums;margin:8px 0 12px;}
+  #stats .stat{border-top:3px solid var(--stat-color,var(--accent));background:linear-gradient(155deg,color-mix(in srgb,var(--stat-color,var(--accent)) 6%,var(--panel)),var(--panel) 70%);}
+  #stats .stat:nth-child(1){--stat-color:#d97706;}
+  #stats .stat:nth-child(2){--stat-color:#0ea5e9;}
+  #stats .stat:nth-child(3){--stat-color:#6366f1;}
+  #stats .stat:nth-child(4){--stat-color:#0284c7;}
+  #stats .stat:nth-child(5){--stat-color:#14b8a6;}
+  #stats .stat:nth-child(6){--stat-color:#8b5cf6;}
+  #stats .stat:nth-child(7){--stat-color:#65a30d;}
+  #stats .stat .lab{color:var(--ink);font-weight:500;}
+  @media(max-width:600px){#rainTiming{padding:12px;font-size:.94rem;line-height:1.95;}#dailySummaryText{padding:12px;}}
   .stat .sub{font-size:.76rem; color:var(--muted); margin-top:2px;}
 
   .card{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; box-shadow:var(--shadow); margin-bottom:16px;}
@@ -328,7 +348,7 @@
     <div class="rk-scale"><span>ปกติ</span><span>เฝ้าระวัง</span><span>เสี่ยงสูง</span><span>อันตราย</span></div>
   </section>
 
-  <section class="card" aria-labelledby="dailySummaryTitle">
+  <section class="card daily-summary-card" aria-labelledby="dailySummaryTitle">
     <h2 id="dailySummaryTitle">📝 บทสรุปรายวันจากผู้ดูแล</h2>
     <p class="hint" id="dailySummaryMeta">กำลังโหลดบทสรุป…</p>
     <div id="dailySummaryText" style="white-space:pre-wrap;overflow-wrap:anywhere" aria-live="polite"></div>
@@ -373,7 +393,7 @@
   })();
   </script>
 
-  <section class="card" aria-labelledby="rainTimingTitle">
+  <section class="card rain-timing-card" aria-labelledby="rainTimingTitle">
     <h2 id="rainTimingTitle">🌦️ วันนี้คาดว่าฝนจะตกช่วงไหน?</h2>
     <p id="rainTimingMeta" class="hint">กำลังโหลดพยากรณ์รายชั่วโมง…</p>
     <div id="rainTiming" style="white-space:pre-line" aria-live="polite"></div>
