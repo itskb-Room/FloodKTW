@@ -162,7 +162,14 @@ function updateHistory(history, wl) {
   push('janah', wl?.janah);
   push('nathawi', wl?.nathawi);
   const cutoff = Date.now() - HISTORY_KEEP_HOURS * 3.6e6;
-  return history.filter((h) => new Date(h.datetime).getTime() >= cutoff);
+  // เก็บอย่างน้อย 20 จุดล่าสุดต่อคลอง แม้ช่วงเก็บข้อมูลห่างกันเกิน 48 ชม.
+  const retained = new Set();
+  for (const key of ['janah', 'nathawi']) {
+    history.filter((h) => h.key === key)
+      .sort((a, b) => new Date(a.datetime) - new Date(b.datetime))
+      .slice(-20).forEach((h) => retained.add(h));
+  }
+  return history.filter((h) => retained.has(h) || new Date(h.datetime).getTime() >= cutoff);
 }
 
 // สร้างรายละเอียดการเปลี่ยนแปลงของคลองหนึ่ง ๆ

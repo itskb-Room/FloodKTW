@@ -1050,8 +1050,7 @@ function wlSparkline(key, bank){
     .map(r=>({t:new Date(r.datetime).getTime(), v:Number(r.msl)}))
     .filter(p=>isFinite(p.t)&&isFinite(p.v)).sort((a,b)=>a.t-b.t);
   if(all.length<2) return '';
-  const last=all[all.length-1].t, since=last-36*3.6e6;
-  let d=all.filter(p=>p.t>=since); if(d.length<2) d=all.slice(-Math.min(all.length,6));
+  const d=all.slice(-20);
   const W=240,H=46,padL=3,padR=3,padT=6,padB=12;
   let vmin=Math.min.apply(null,d.map(p=>p.v)), vmax=Math.max.apply(null,d.map(p=>p.v));
   let pad=(vmax-vmin)*0.18||0.05; vmin-=pad; vmax+=pad;
@@ -1066,7 +1065,7 @@ function wlSparkline(key, bank){
     bankLine=`<line x1="${padL}" y1="${by}" x2="${W-padR}" y2="${by}" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 3"/><text x="${W-padR}" y="${(parseFloat(by)-2).toFixed(1)}" text-anchor="end" font-size="8" fill="#dc2626">ตลิ่ง</text>`; }
   const t0=formatWaterHistoryTime(tmin);
   const t1=formatWaterHistoryTime(lp.t);
-  return `<div style="margin-top:8px"><div class="wl-sub" style="margin-bottom:2px">📉 ระดับน้ำย้อนหลัง (${d.length} จุด) · เวลาไทย</div>
+  return `<div style="margin-top:8px"><div class="wl-sub" style="margin-bottom:2px">📉 ระดับน้ำย้อนหลัง (${d.length}/20 จุดล่าสุด) · เวลาไทย</div>
     <svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="display:block">
     ${bankLine}<polyline points="${pl}" fill="none" stroke="${col}" stroke-width="1.6"/>
     <circle cx="${x(lp.t).toFixed(1)}" cy="${y(lp.v).toFixed(1)}" r="2.4" fill="${col}"/></svg>

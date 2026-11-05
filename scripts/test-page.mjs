@@ -26,3 +26,21 @@ const label = context.formatWaterHistoryTime('2026-11-04T17:30:00.000Z');
 assert.match(label, /05\/11\/2569/);
 assert.match(label, /00:30/);
 console.log('Thai history date and midnight timezone checks passed');
+const sparklineFunction = html.slice(html.indexOf('function wlSparkline('), html.indexOf('function formatWaterHistoryTime('));
+context.WL_HISTORY = Array.from({ length: 25 }, (_, i) => ({
+  key: 'janah', datetime: new Date(Date.UTC(2026, 10, i + 1)).toISOString(), msl: 2 + i / 100,
+}));
+context.isFinite = isFinite;
+context.parseFloat = parseFloat;
+vm.runInContext(sparklineFunction, context);
+const graph = context.wlSparkline('janah', 4.75);
+assert.match(graph, /20\/20 จุดล่าสุด/);
+assert.equal(graph.match(/points="([^"]+)"/)[1].split(' ').length, 20);
+console.log('History chart shows latest 20 points across more than 36 hours');
+
+const { updateHistory } = await import('./update-flood-data.mjs');
+const history = Array.from({ length: 25 }, (_, i) => ({
+  key: 'janah', datetime: new Date(Date.now() - (30 - i) * 86400000).toISOString(), msl: 2,
+}));
+assert.equal(updateHistory(history, {}).length, 20);
+console.log('History retention preserves 20 points even beyond 48 hours');
