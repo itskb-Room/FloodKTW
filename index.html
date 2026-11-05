@@ -238,7 +238,7 @@
     [["จะนะ","janah"],["นาทวี","nathawi"]].forEach(function(p){
       var w=wl[p[1]]; if(!w||w.diff_wl_bank==null) return;
       var fresh=(w.age_hours==null||w.age_hours<=6);
-      var lvl = fresh ? (w.diff_wl_bank<=0?3:w.diff_wl_bank<0.5?2:w.diff_wl_bank<1.0?1:0) : 0;
+      var lvl = fresh ? (w.diff_wl_bank<=0?3:w.diff_wl_bank<1.5?2:0) : 0;
       if(lvl>idx) idx=lvl;
       if(lvl>=1){ var lb=["ปกติ","เฝ้าระวัง","เสี่ยงสูง","อันตราย"][lvl];
         var t="คลอง"+p[0]+" ("+lb+"): เหลือถึงตลิ่ง "+w.diff_wl_bank+" ม.";
@@ -325,6 +325,51 @@
     <div class="rk-bar"><div class="cursor" id="rkCursor" style="left:5%"></div></div>
     <div class="rk-scale"><span>ปกติ</span><span>เฝ้าระวัง</span><span>เสี่ยงสูง</span><span>อันตราย</span></div>
   </section>
+
+  <section class="card" aria-labelledby="dailySummaryTitle">
+    <h2 id="dailySummaryTitle">📝 บทสรุปรายวันจากผู้ดูแล</h2>
+    <p class="hint" id="dailySummaryMeta">กำลังโหลดบทสรุป…</p>
+    <div id="dailySummaryText" style="white-space:pre-wrap;overflow-wrap:anywhere" aria-live="polite"></div>
+    <p class="hint">ข้อความจากผู้ดูแล แยกจากผลประเมินอัตโนมัติ ไม่ใช่ประกาศเตือนภัยอย่างเป็นทางการ</p>
+    <details>
+      <summary>สำหรับ Admin: เพิ่ม / แก้ไขบทสรุปรายวัน</summary>
+      <p class="hint">เข้าสู่ระบบ GitHub ด้วยบัญชีที่มีสิทธิ์แก้ไขโครงการ แก้วันที่ เวลาสรุป (เวลาไทย) ผู้เขียน และข้อความในไฟล์ แล้วกด Commit changes บทสรุปจะเผยแพร่เมื่อเว็บ deploy สำเร็จ</p>
+      <a class="btn" href="https://github.com/itskb-Room/FloodKTW/edit/main/data/daily-summary.json" target="_blank" rel="noopener noreferrer">แก้ไขบทสรุปผ่าน GitHub ↗</a>
+    </details>
+  </section>
+  <script>
+  (function(){
+    const meta=document.getElementById('dailySummaryMeta');
+    const text=document.getElementById('dailySummaryText');
+    async function loadDailySummary(){
+      try{
+        const res=await fetch('data/daily-summary.json',{cache:'no-store'});
+        if(!res.ok) throw new Error('โหลดไม่สำเร็จ');
+        const data=await res.json();
+        if(typeof data.summary!=='string') throw new Error('รูปแบบไม่ถูกต้อง');
+        if(!data.summary.trim()){
+          meta.textContent='ยังไม่มีบทสรุปจากผู้ดูแล';
+          text.textContent='ผู้ดูแลสามารถเพิ่มบทสรุปรายวันผ่านลิงก์ด้านล่าง';
+          return;
+        }
+        if(typeof data.date!=='string' || !/^\d{4}-\d{2}-\d{2}$/.test(data.date)) throw new Error('วันที่ไม่ถูกต้อง');
+        const date=new Date(data.date+'T00:00:00+07:00');
+        if(!Number.isFinite(date.getTime()) || new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(date)!==data.date) throw new Error('วันที่ไม่ถูกต้อง');
+        const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+        if(typeof data.time!=='string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(data.time)) throw new Error('เวลาสรุปไม่ถูกต้อง');
+        meta.textContent='สรุปประจำวันที่ '+date.toLocaleDateString('th-TH',{timeZone:'Asia/Bangkok',dateStyle:'long'})+' เวลา '+data.time+' น. (เวลาไทย)'+
+          (typeof data.author==='string' && data.author.trim()?' · โดย '+data.author:'')+
+          (data.date!==today?' · ไม่ใช่บทสรุปของวันนี้':'');
+        text.textContent=data.summary;
+      }catch(e){
+        meta.textContent='ไม่สามารถโหลดบทสรุปรายวันได้';
+        text.textContent='โปรดลองรีเฟรชอีกครั้ง ข้อความนี้ไม่ใช่การยืนยันว่าสถานการณ์ปลอดภัย';
+      }
+    }
+    loadDailySummary();
+    document.getElementById('refreshBtn').addEventListener('click',loadDailySummary);
+  })();
+  </script>
 
   <!-- STAT CARDS -->
   <section class="grid" id="stats">
@@ -483,7 +528,7 @@
   <!-- METHODOLOGY -->
   <section class="card">
     <h2>🧮 วิธีประเมินระดับความเสี่ยง</h2>
-    <p class="hint">คะแนนความเสี่ยง = ฝนสะสม 24 ชม.ที่ผ่านมา + (0.8 × พยากรณ์ฝน 24 ชม.ข้างหน้า) ± ปัจจัยระดับความสูงพื้นที่ เทียบเกณฑ์ฝนของกรมอุตุนิยมวิทยา (พื้นที่ยิ่งต่ำ +ความเสี่ยง) · และยกระดับตามระดับน้ำคลอง: เหลือถึงตลิ่ง &lt; 1 ม. = เฝ้าระวัง, &lt; 0.5 ม. = เสี่ยงสูง, ล้นตลิ่ง = อันตราย</p>
+    <p class="hint">คะแนนฝน = ฝนสะสม 24 ชม.ที่ผ่านมา + (0.8 × พยากรณ์ฝน 24 ชม.ข้างหน้า) ± ปัจจัยระดับความสูงพื้นที่ · หากข้อมูลคลองจะนะและนาทวีอายุไม่เกิน 6 ชม. และทั้งสองแห่งเหลือถึงตลิ่งอย่างน้อย 1.5 ม. ให้ระดับจากฝนสูงสุดเป็น “เฝ้าระวัง” ไม่ใช่เสี่ยงสูงหรืออันตรายจากฝนเพียงอย่างเดียว · ยกระดับตามน้ำคลอง: เหลือถึงตลิ่ง &lt; 1.5 ม. = เสี่ยงสูง, ถึงตลิ่งหรือล้นตลิ่ง = อันตราย · ระยะถึงตลิ่งไม่ใช่ปริมาตรรับน้ำ และไม่รับประกันว่าจะไม่เกิดน้ำท่วมขัง</p>
     <div class="legend" style="font-size:.85rem;">
       <span><span class="sw" style="background:#22c55e"></span> <b>ปกติ</b> &lt; 35 มม.</span>
       <span><span class="sw" style="background:#eab308"></span> <b>เฝ้าระวัง</b> 35–70 มม. (ฝนหนัก)</span>
@@ -611,8 +656,7 @@ function computeRisk(){
   let wlNote='';
   if(WL && WL.minFree!=null){
     if(WL.minFree<=0) score=Math.max(score,130);
-    else if(WL.minFree<0.5) score=Math.max(score,90);
-    else if(WL.minFree<1.0) score=Math.max(score,50);
+    else if(WL.minFree<1.5) score=Math.max(score,90);
     wlNote=` · ระดับน้ำคลอง: ${WL.minName} เหลือถึงตลิ่ง ${fmt(WL.minFree,2)} ม.`;
   }
 
@@ -626,15 +670,20 @@ function computeRisk(){
   else { lvl=3; label='อันตราย'; icon='🚨'; cls='red';
     desc='ฝนหนักมากต่อเนื่อง ความเสี่ยงน้ำท่วมสูงมาก โปรดเตรียมพร้อมอพยพและปฏิบัติตามคำสั่ง ปภ./อบต.'; }
 
+  if(WL && WL.capacityAvailable && lvl>=1){
+    lvl=1; label='เฝ้าระวัง'; icon='⚠️'; cls='yellow';
+    desc='ยังไม่ยกระดับเป็นเสี่ยงสูงหรืออันตรายจากฝนเพียงอย่างเดียว: น้ำคลองทั้งสองแห่งยังเหลือถึงตลิ่งอย่างน้อย 1.5 ม. ควรติดตามพยากรณ์ฝนและระดับน้ำอย่างใกล้ชิด ทั้งนี้ยังอาจเกิดน้ำท่วมขังเฉพาะจุดได้';
+  }
   $('rkBadge').className='rk-badge rk-lvl-'+cls;
   $('rkIcon').textContent=icon;
   $('rkLabel').textContent=label;
   const elevNote = (AREA_ELEV!=null)? ` · ระดับพื้นที่ ${fmt(AREA_ELEV,0)} ม.` : '';
   $('rkDesc').innerHTML = desc +
-    ` <br><b>คะแนนความเสี่ยง ≈ ${fmt(score,0)}</b> `+
+    ` <br><b>คะแนนฝนประกอบการประเมิน ≈ ${fmt(score,0)}</b> `+
     `(ฝนสะสม 24 ชม. ${fmt(past24,1)} มม. + พยากรณ์ 24 ชม. ${fmt(next24,1)} มม. · คาด 72 ชม. ${fmt(next72,0)} มม.${elevNote}${srcNote}${rnNote}${wlNote})`;
 
-  const pos = Math.max(2, Math.min(98, (score/160)*100));
+  const displayScore=(WL && WL.capacityAvailable && lvl===1)?50:score;
+  const pos = Math.max(2, Math.min(98, (displayScore/160)*100));
   $('rkCursor').style.left = pos+'%';
 }
 
@@ -803,8 +852,7 @@ const parseT=ts=>{ if(!ts) return null; const x=new Date(String(ts).replace(' ',
 function wlStatus(fb){
   if(fb==null) return {t:'ไม่มีข้อมูลตลิ่ง', c:'var(--muted)', bg:'var(--panel)', bar:'var(--muted)'};
   if(fb<=0)   return {t:'ล้นตลิ่ง',            c:'var(--red)',    bg:'var(--red-bg)',    bar:'#ef4444'};
-  if(fb<0.5)  return {t:'ใกล้ล้นตลิ่ง',        c:'var(--orange)', bg:'var(--orange-bg)', bar:'#f97316'};
-  if(fb<1.0)  return {t:'น้ำค่อนข้างมาก',      c:'var(--yellow)', bg:'var(--yellow-bg)', bar:'#eab308'};
+  if(fb<1.5)  return {t:'เสี่ยงสูง — เหลือถึงตลิ่งต่ำกว่า 1.5 ม.', c:'var(--orange)', bg:'var(--orange-bg)', bar:'#f97316'};
   return            {t:'ปกติ (ต่ำกว่าตลิ่ง)', c:'var(--green)',  bg:'var(--green-bg)',  bar:'#22c55e'};
 }
 
@@ -961,17 +1009,19 @@ async function loadWaterLevel(){
     const rows=res.data;
     if(!rows||!rows.length) throw new Error('ไม่พบสถานีในอำเภอเป้าหมาย');
     let minFree=null, minName='';
+    const capacityKeys=new Set();
     let html='';
     rows.forEach(s=>{
       const st0=s.station||{}, gc=s.geocode||{};
       const name=txt(st0.tele_station_name)||('สถานี '+st0.id);
       const amp=txt(gc.amphoe_name), tum=txt(gc.tumbon_name), river=txt(s.river_name);
       const wl=Number(s.waterlevel_msl), bank=Number(st0.min_bank);
-      let fb=Number(s.diff_wl_bank);
+      let fb=s.diff_wl_bank==null?NaN:Number(s.diff_wl_bank);
       if(!isFinite(fb)) fb=(isFinite(bank)&&isFinite(wl))? bank-wl : null;
       const t=parseT(s.waterlevel_datetime);
       const tsTxt=t?t.toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}):'';
-      const stale=t?((Date.now()-t.getTime())>6*3.6e6):false;
+      const stale=!t || !Number.isFinite(t.getTime()) || (Date.now()-t.getTime())>6*3.6e6;
+      if(!stale && fb!=null && fb>=1.5) capacityKeys.add(wlKeyOf(st0, amp));
       if(fb!=null && !stale && (minFree==null||fb<minFree)){ minFree=fb; minName=name; }   // ใช้คำนวณความเสี่ยงเฉพาะข้อมูลที่ไม่เก่าเกิน 6 ชม.
       const st=wlStatus(fb);
       const pct= fb==null?0 : Math.max(4,Math.min(100,(1-fb/3)*100));   // เต็มเมื่อใกล้/ล้นตลิ่ง (สเกล 3 ม.)
@@ -998,7 +1048,7 @@ async function loadWaterLevel(){
       </div>`;
     });
     box.innerHTML=html;
-    WL=(minFree==null)?null:{minFree,minName};
+    WL=(minFree==null)?null:{minFree,minName,capacityAvailable:minFree>=1.5 && capacityKeys.has('janah') && capacityKeys.has('nathawi')};
     msg.innerHTML='แหล่งข้อมูล: <a href="https://www.thaiwater.net/water/wl" target="_blank" rel="noopener">คลังข้อมูลน้ำแห่งชาติ (thaiwater.net)</a> · ดูข้อมูลสดที่ <a href="https://songkhla.thaiwater.net/wl" target="_blank" rel="noopener">ศูนย์ข้อมูลน้ำ จ.สงขลา</a>'+twNote(res);
     computeRisk();
   }catch(e){

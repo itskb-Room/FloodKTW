@@ -132,7 +132,7 @@ function parseWL(j) {
 // ---------- เกณฑ์ระดับ ----------
 const fcLevel  = (mm) => (mm == null ? 0 : mm >= 120 ? 3 : mm >= 70 ? 2 : mm >= 35 ? 1 : 0);
 const obsLevel = (mm) => (mm == null ? 0 : mm >= 90  ? 3 : mm >= 70 ? 2 : mm >= 35 ? 1 : 0);
-const wlLevel  = (d)  => (d  == null ? 0 : d <= 0    ? 3 : d < 0.5  ? 2 : d < 1.0  ? 1 : 0);
+const wlLevel  = (d)  => (d  == null ? 0 : d <= 0 ? 3 : d < 1.5 ? 2 : 0);
 
 function isFresh(ageH) { return ageH !== null && ageH <= FRESH_HOURS; }
 
@@ -353,7 +353,13 @@ async function main() {
   if (wlJ) reasons.push(`คลองจะนะเหลือถึงตลิ่ง ${wlJ.diff_wl_bank} ม. (เก่า ${wlJ.age_hours ?? '?'} ชม.)${freshWlJ ? '' : ' [เก่า>6ชม.]'}${riseTxt(wlJ)}`);
   if (wlN) reasons.push(`คลองนาทวีเหลือถึงตลิ่ง ${wlN.diff_wl_bank} ม. (เก่า ${wlN.age_hours ?? '?'} ชม.)${freshWlN ? '' : ' [เก่า>6ชม.]'}${riseTxt(wlN)}`);
 
-  const overall = Math.max(fLvl, oLvlJ, oLvlN, wLvlJ, wLvlN);
+   const canalCapacityAvailable = Boolean(freshWlJ && freshWlN &&
+     Number.isFinite(wlJ.diff_wl_bank) && Number.isFinite(wlN.diff_wl_bank) &&
+     wlJ.diff_wl_bank >= 1.5 && wlN.diff_wl_bank >= 1.5);
+   const overall = combinedRiskLevel(fLvl, Math.max(oLvlJ, oLvlN), Math.max(wLvlJ, wLvlN), canalCapacityAvailable);
+   if (canalCapacityAvailable && Math.max(fLvl, oLvlJ, oLvlN) >= 1) {
+     reasons.push('ข้อมูลน้ำคลองทั้งสองแห่งล่าสุดเหลือถึงตลิ่งอย่างน้อย 1.5 ม. ยังมีระยะรับน้ำ: ให้เฝ้าระวังฝนและติดตามระดับน้ำ ไม่ยกระดับจากปริมาณฝนเพียงอย่างเดียว');
+   }
 
   // freshness รวม (เฉพาะข้อมูลวัดจริง/ระดับน้ำ)
   const ages = [obsJ?.age_hours, obsN?.age_hours, wlJ?.age_hours, wlN?.age_hours].filter((a) => a != null);
@@ -378,7 +384,8 @@ async function main() {
     data_fresh: dataFresh,
     forecast_level: LABELS[fLvl],
     observed_level: LABELS[Math.max(oLvlJ, oLvlN)],
-    waterlevel_level: LABELS[Math.max(wLvlJ, wLvlN)],
+     waterlevel_level: LABELS[Math.max(wLvlJ, wLvlN)],
+     canal_capacity_available: canalCapacityAvailable,
     reasons,
     note: 'ประเมินจากตัวเลข 3 เกณฑ์เท่านั้น — ยังต้องพิจารณาประกาศทางการ (TMD/สทนช./ปภ./ผู้ว่าฯ) ประกอบ ซึ่งไฟล์นี้ไม่ได้ดึงอัตโนมัติ. ไม่ใช่การเตือนภัยอย่างเป็นทางการ',
   };
@@ -401,4 +408,9 @@ if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).
   main().catch((e) => { console.error('FATAL', e); process.exit(1); });
 }
 
-export { computeRise, updateHistory, loadHistory, parseThaiTime, ageHours, fcLevel, obsLevel, wlLevel, maybeSendWaterAlert, parseRain, parseWL, thName };
+function combinedRiskLevel(forecast, observed, water, capacityAvailable) {
+  const rain = Math.max(forecast, observed);
+  return Math.max(capacityAvailable ? Math.min(rain, 1) : rain, water);
+}
+
+export { combinedRiskLevel, computeRise, updateHistory, loadHistory, parseThaiTime, ageHours, fcLevel, obsLevel, wlLevel, maybeSendWaterAlert, parseRain, parseWL, thName };
