@@ -261,6 +261,8 @@
   }
 
   function render(d){
+    window.floodRiskSnapshot=d;
+    window.dispatchEvent(new Event('flood-risk-updated'));
     var r=d.risk||{}, code=r.level_code||"unknown";
     bar.style.setProperty("--c", COLORS[code]||COLORS.unknown);
     bar.classList.toggle("fktw-flash", code==="high"||code==="danger");
@@ -660,6 +662,7 @@ function renderWeather(d){
 
 /* ===== ประเมินความเสี่ยง (อ่านค่าจากตัวแปรรวม PRIMARY + CONSENSUS) ===== */
 let PRIMARY={past24:0,next24:0,next72:0}, CONSENSUS=null, WL=null, RAIN=null;
+window.addEventListener('flood-risk-updated',computeRisk);
 function computeRisk(){
   if(!PRIMARY) return;
   let past24=PRIMARY.past24, rnNote='';
@@ -708,6 +711,32 @@ function computeRisk(){
     lvl=1; label='เฝ้าระวัง'; icon='⚠️'; cls='yellow';
     desc='ยังไม่ยกระดับเป็นเสี่ยงสูงหรืออันตรายจากฝนเพียงอย่างเดียว: น้ำคลองทั้งสองแห่งยังเหลือถึงตลิ่งอย่างน้อย 1.5 ม. ควรติดตามพยากรณ์ฝนและระดับน้ำอย่างใกล้ชิด ทั้งนี้ยังอาจเกิดน้ำท่วมขังเฉพาะจุดได้';
   }
+  // ใช้ผลประเมินเดียวกับแถบด้านบน ไม่คำนวณระดับเตือนแยกกัน
+  const snapshot=window.floodRiskSnapshot;
+  const shared=snapshot && snapshot.risk;
+  if(shared){
+    const index=shared.level_index;
+    const known=Number.isInteger(index) && index>=0 && index<=3 && !shared.insufficient_data;
+    lvl=known?index:-1;
+    label=known?shared.level:'ไม่ทราบ (ข้อมูลไม่พอ)';
+    icon=known?['✓','⚠️','🔶','🚨'][lvl]:'⚪';
+    cls=known?['green','yellow','orange','red'][lvl]:'yellow';
+    desc=known?[
+      'ยังไม่พบสัญญาณเข้าเกณฑ์เตือนจากข้อมูลชุดล่าสุด โปรดติดตามสถานการณ์',
+      'เฝ้าระวังฝนและระดับน้ำคลอง ติดตามพยากรณ์และประกาศทางการอย่างใกล้ชิด',
+      'เสี่ยงสูงจากเกณฑ์ฝนหรือระดับน้ำคลอง กรุณาเตรียมพร้อมและติดตามประกาศทางการ',
+      'เข้าเกณฑ์อันตรายจากฝนหรือระดับน้ำคลอง โปรดติดตามประกาศและปฏิบัติตามคำแนะนำของหน่วยงานทางการ'
+    ][lvl]:'ข้อมูลไม่พอประเมิน ห้ามตีความว่าปลอดภัย';
+    $('rkBadge').className='rk-badge rk-lvl-'+cls;
+    $('rkIcon').textContent=icon;
+    $('rkLabel').textContent=label;
+    $('rkDesc').textContent=desc+' · ผลประเมินชุดเดียวกับแถบด้านบน · อัปเดต '+(snapshot.generated_at_th||snapshot.generated_at||'ไม่ทราบเวลา')+
+      (Array.isArray(shared.reasons)?' · '+shared.reasons.join(' · '):'');
+    $('rkCursor').hidden=!known;
+    if(known) $('rkCursor').style.left=[12.5,37.5,62.5,87.5][lvl]+'%';
+    return;
+  }
+  $('rkCursor').hidden=false;
   $('rkBadge').className='rk-badge rk-lvl-'+cls;
   $('rkIcon').textContent=icon;
   $('rkLabel').textContent=label;
