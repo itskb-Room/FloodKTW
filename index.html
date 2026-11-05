@@ -1064,13 +1064,19 @@ function wlSparkline(key, bank){
   let bankLine='';
   if(isFinite(bank)&&bank<=vmax&&bank>=vmin){ const by=y(bank).toFixed(1);
     bankLine=`<line x1="${padL}" y1="${by}" x2="${W-padR}" y2="${by}" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 3"/><text x="${W-padR}" y="${(parseFloat(by)-2).toFixed(1)}" text-anchor="end" font-size="8" fill="#dc2626">ตลิ่ง</text>`; }
-  const t0=new Date(tmin).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit'});
-  const t1=new Date(lp.t).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit'});
-  return `<div style="margin-top:8px"><div class="wl-sub" style="margin-bottom:2px">📉 ระดับน้ำย้อนหลัง (${all.length} จุด)</div>
+  const t0=formatWaterHistoryTime(tmin);
+  const t1=formatWaterHistoryTime(lp.t);
+  return `<div style="margin-top:8px"><div class="wl-sub" style="margin-bottom:2px">📉 ระดับน้ำย้อนหลัง (${d.length} จุด) · เวลาไทย</div>
     <svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="display:block">
     ${bankLine}<polyline points="${pl}" fill="none" stroke="${col}" stroke-width="1.6"/>
     <circle cx="${x(lp.t).toFixed(1)}" cy="${y(lp.v).toFixed(1)}" r="2.4" fill="${col}"/></svg>
     <div class="wl-row" style="font-size:.72rem;margin-top:0"><span>${t0}</span><span>${t1}</span></div></div>`;
+}
+
+function formatWaterHistoryTime(timestamp){
+  const date=new Date(timestamp);
+  return date.toLocaleDateString('th-TH',{timeZone:'Asia/Bangkok',day:'2-digit',month:'2-digit',year:'numeric'})+' '+
+    date.toLocaleTimeString('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})+' น.';
 }
 
 /* ===== แนวโน้มจากข้อมูลฝั่งเซิร์ฟเวอร์ (GitHub Actions → data/*.json) ===== */
