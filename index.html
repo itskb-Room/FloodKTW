@@ -371,6 +371,13 @@
   })();
   </script>
 
+  <section class="card" aria-labelledby="rainTimingTitle">
+    <h2 id="rainTimingTitle">🌦️ วันนี้คาดว่าฝนจะตกช่วงไหน?</h2>
+    <p id="rainTimingMeta" class="hint">กำลังโหลดพยากรณ์รายชั่วโมง…</p>
+    <div id="rainTiming" style="white-space:pre-line" aria-live="polite"></div>
+    <p class="hint">แหล่งข้อมูล Open-Meteo · เวลาไทย · แสดงช่วงที่เหลือของวันนี้ รวมชั่วโมงปัจจุบัน เมื่อคาดว่าฝน ≥ 0.1 มม./ชม. หรือโอกาสฝน ≥ 50% เป็นเพียงพยากรณ์ เวลาและปริมาณฝนจริงอาจเปลี่ยนแปลงได้</p>
+  </section>
+
   <!-- STAT CARDS -->
   <section class="grid" id="stats">
     <div class="stat"><div class="lab">🌡️ อุณหภูมิ / ความชื้น</div><div class="val" id="sTemp">–</div><div class="sub" id="sHum">ความชื้น –</div></div>
@@ -568,12 +575,38 @@ async function loadWeather(){
     $('updated').textContent = new Date().toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'});
   }catch(e){
     $('livedot').className='dot';
+    $('rainTimingMeta').textContent='โหลดพยากรณ์ไม่สำเร็จ โปรดรีเฟรชข้อมูล';
+    $('rainTiming').textContent='ยังระบุช่วงเวลาฝนตกไม่ได้ ไม่ได้หมายความว่าจะไม่มีฝน';
     $('rkDesc').innerHTML = '<span class="err">ดึงข้อมูลฝนไม่สำเร็จ ('+e.message+') — ลองกด “รีเฟรช” อีกครั้ง หรือตรวจการเชื่อมต่ออินเทอร์เน็ต</span>';
     $('fcMsg').innerHTML = '<span class="err">โหลดกราฟไม่สำเร็จ</span>';
   }
 }
 
 function sumRange(arr, start, end){ let s=0; for(let i=start;i<end && i<arr.length;i++){ if(arr[i]!=null) s+=arr[i]; } return s; }
+
+function renderRainTiming(hourly, now=new Date()){
+  const thaiDate=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+  const times=hourly.time||[], rain=hourly.precipitation||[], probs=hourly.precipitation_probability||[];
+  const windows=[];
+  let active=null, available=0;
+  times.forEach((time,i)=>{
+    const start=new Date(time+'+07:00').getTime();
+    if(!time.startsWith(thaiDate) || start+3600000<=now.getTime()) return;
+    const mm=rain[i], prob=probs[i];
+    if(Number.isFinite(mm) || Number.isFinite(prob)) available++;
+    if(!(Number.isFinite(mm) && mm>=0.1) && !(Number.isFinite(prob) && prob>=50)){active=null;return;}
+    if(!active || active.end!==start){active={start,end:start,total:0,prob:null};windows.push(active);}
+    active.end=start+3600000;
+    if(Number.isFinite(mm)) active.total+=mm;
+    if(Number.isFinite(prob)) active.prob=Math.max(active.prob??0,prob);
+  });
+  const clock=ms=>new Date(ms).toLocaleTimeString('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+  $('rainTimingMeta').textContent='ประจำวันที่ '+now.toLocaleDateString('th-TH',{timeZone:'Asia/Bangkok',dateStyle:'long'})+' · ดึงข้อมูลเมื่อ '+clock(now.getTime())+' น.';
+  $('rainTiming').textContent=!available?'ข้อมูลรายชั่วโมงไม่เพียงพอ ยังระบุช่วงเวลาฝนไม่ได้':
+    !windows.length?'ช่วงที่เหลือของวันนี้ยังไม่พบชั่วโมงที่เข้าเกณฑ์ฝนตามพยากรณ์ แต่อาจมีฝนเฉพาะจุดได้':
+    windows.map(w=>'• ประมาณ '+clock(w.start)+'–'+(clock(w.end)==='00:00'?'24:00':clock(w.end))+' น.'+
+      ' · ปริมาณคาดการณ์รวม '+fmt(w.total,1)+' มม.'+(w.prob==null?'':' · โอกาสฝนสูงสุด '+fmt(w.prob,0)+'%')).join('\n');
+}
 
 let AREA_ELEV=null;
 function elevContext(m){
@@ -586,6 +619,7 @@ function elevContext(m){
 
 function renderWeather(d){
   const cur=d.current||{}, h=d.hourly||{}, day=d.daily||{};
+  renderRainTiming(h);
   // ระดับความสูงพื้นที่ (Copernicus DEM ~90m ผ่าน Open-Meteo)
   AREA_ELEV = (d.elevation!=null)?d.elevation:null;
   const ec=elevContext(AREA_ELEV);
