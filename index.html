@@ -355,8 +355,8 @@
     <p class="hint">ข้อความจากผู้ดูแล แยกจากผลประเมินอัตโนมัติ ไม่ใช่ประกาศเตือนภัยอย่างเป็นทางการ</p>
     <details>
       <summary>สำหรับ Admin: เพิ่ม / แก้ไขบทสรุปรายวัน</summary>
-      <p class="hint">เข้าสู่ระบบ GitHub ด้วยบัญชีที่มีสิทธิ์แก้ไขโครงการ แก้วันที่ เวลาสรุป (เวลาไทย) ผู้เขียน และข้อความในไฟล์ แล้วกด Commit changes บทสรุปจะเผยแพร่เมื่อเว็บ deploy สำเร็จ</p>
-      <a class="btn" href="https://github.com/itskb-Room/FloodKTW/edit/main/data/daily-summary.json" target="_blank" rel="noopener noreferrer">แก้ไขบทสรุปผ่าน GitHub ↗</a>
+      <p class="hint">พิมพ์เฉพาะบทวิเคราะห์ในไฟล์ข้อความ แล้วกด Commit changes ระบบดึงวันที่และเวลาไทยจากการบันทึกไฟล์บน GitHub อัตโนมัติ ไม่ต้องกรอกวันที่ เวลา หรือรูปแบบ JSON</p>
+      <a class="btn" href="https://github.com/itskb-Room/FloodKTW/edit/main/data/daily-summary.txt" target="_blank" rel="noopener noreferrer">พิมพ์บทวิเคราะห์ผ่าน GitHub ↗</a>
     </details>
   </section>
   <script>
@@ -365,24 +365,33 @@
     const text=document.getElementById('dailySummaryText');
     async function loadDailySummary(){
       try{
-        const res=await fetch('data/daily-summary.json',{cache:'no-store'});
+        const res=await fetch('data/daily-summary.txt',{cache:'no-store'});
         if(!res.ok) throw new Error('โหลดไม่สำเร็จ');
-        const data=await res.json();
-        if(typeof data.summary!=='string') throw new Error('รูปแบบไม่ถูกต้อง');
-        if(!data.summary.trim()){
+        const summary=await res.text();
+        if(!summary.trim()){
           meta.textContent='ยังไม่มีบทสรุปจากผู้ดูแล';
           text.textContent='ผู้ดูแลสามารถเพิ่มบทสรุปรายวันผ่านลิงก์ด้านล่าง';
           return;
         }
-        if(typeof data.date!=='string' || !/^\d{4}-\d{2}-\d{2}$/.test(data.date)) throw new Error('วันที่ไม่ถูกต้อง');
-        const date=new Date(data.date+'T00:00:00+07:00');
-        if(!Number.isFinite(date.getTime()) || new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(date)!==data.date) throw new Error('วันที่ไม่ถูกต้อง');
-        const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-        if(typeof data.time!=='string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(data.time)) throw new Error('เวลาสรุปไม่ถูกต้อง');
-        meta.textContent='สรุปประจำวันที่ '+date.toLocaleDateString('th-TH',{timeZone:'Asia/Bangkok',dateStyle:'long'})+' เวลา '+data.time+' น. (เวลาไทย)'+
-          (typeof data.author==='string' && data.author.trim()?' · โดย '+data.author:'')+
-          (data.date!==today?' · ไม่ใช่บทสรุปของวันนี้':'');
-        text.textContent=data.summary;
+        text.textContent=summary;
+        meta.textContent='กำลังตรวจสอบเวลาที่ผู้ดูแลบันทึกบทวิเคราะห์…';
+        try{
+          const history=await fetch('https://api.github.com/repos/itskb-Room/FloodKTW/commits?path=data%2Fdaily-summary.txt&sha=main&per_page=1',{cache:'no-store'});
+          if(!history.ok) throw new Error('โหลดเวลาบันทึกไม่สำเร็จ');
+          const commits=await history.json();
+          const commit=commits[0];
+          if(!commit) throw new Error('ไม่พบเวลาบันทึก');
+          // ตรวจสอบว่าเป็นข้อความเดียวกับไฟล์ที่เผยแพร่แล้ว ป้องกันวันที่ใหม่แต่เนื้อหาเก่า
+          const committed=await fetch('https://raw.githubusercontent.com/itskb-Room/FloodKTW/'+commit.sha+'/data/daily-summary.txt',{cache:'no-store'});
+          if(!committed.ok || await committed.text()!==summary) throw new Error('รอเผยแพร่ไฟล์ล่าสุด');
+          const date=new Date(commit.commit.committer.date);
+          if(!Number.isFinite(date.getTime())) throw new Error('เวลาบันทึกไม่ถูกต้อง');
+          const dayFormat=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'});
+          meta.textContent='บันทึกเมื่อ '+date.toLocaleDateString('th-TH',{timeZone:'Asia/Bangkok',dateStyle:'long'})+' เวลา '+date.toLocaleTimeString('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})+' น. (เวลาไทย)'+
+            (dayFormat.format(date)!==dayFormat.format(new Date())?' · ไม่ใช่บทสรุปของวันนี้':'');
+        }catch(e){
+          meta.textContent='บทวิเคราะห์จากผู้ดูแล · ยังตรวจสอบวันที่และเวลาบันทึกไม่ได้ โปรดตรวจสอบความเป็นปัจจุบัน';
+        }
       }catch(e){
         meta.textContent='ไม่สามารถโหลดบทสรุปรายวันได้';
         text.textContent='โปรดลองรีเฟรชอีกครั้ง ข้อความนี้ไม่ใช่การยืนยันว่าสถานการณ์ปลอดภัย';
