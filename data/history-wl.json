@@ -124,5 +124,19 @@
     "datetime_th": "5/11/2569 18:20:00",
     "msl": 20.9,
     "diff_wl_bank": 1.81
+  },
+  {
+    "key": "janah",
+    "datetime": "2026-11-05T18:40:00.000Z",
+    "datetime_th": "6/11/2569 01:40:00",
+    "msl": 2.42,
+    "diff_wl_bank": 2.33
+  },
+  {
+    "key": "nathawi",
+    "datetime": "2026-11-05T18:40:00.000Z",
+    "datetime_th": "6/11/2569 01:40:00",
+    "msl": 20.87,
+    "diff_wl_bank": 1.84
   }
 ]
