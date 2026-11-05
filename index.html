@@ -181,6 +181,12 @@
     <div class="fktw-marquee"><div class="fktw-track" id="fktw-track"></div></div>
     <div class="fktw-time" id="fktw-time"></div>
   </div>
+  <div class="fktw-analysis" id="fktw-analysis" hidden>
+    <span class="fktw-analysis-label">📝 บทวิเคราะห์ผู้ดูแล</span>
+    <div class="fktw-marquee" tabindex="0" aria-label="บทวิเคราะห์ผู้ดูแล เลื่อนเมาส์หรือโฟกัสเพื่อหยุดตัววิ่ง">
+      <div class="fktw-track" id="fktw-analysis-track"></div>
+    </div>
+  </div>
   <div class="fktw-wateralert" id="fktw-wateralert" hidden>
     <span class="fktw-bell">🔔</span>
     <div class="fktw-wa-text" id="fktw-wa-text"></div>
@@ -201,6 +207,14 @@
   #fktw-alertbar .fktw-msg{ font-size:1.02rem; font-weight:600; padding-right:120px; }
   @keyframes fktw-scroll{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
   #fktw-alertbar .fktw-time{ white-space:nowrap; font-size:.72rem; opacity:.8; padding:0 14px; }
+  #fktw-alertbar .fktw-analysis{display:flex;align-items:center;gap:12px;background:linear-gradient(100deg,#4c1d95,#1e3a8a);color:#fff;border-bottom:1px solid #ffffff30;padding:0 14px;}
+  #fktw-alertbar .fktw-analysis[hidden]{display:none;}
+  #fktw-alertbar .fktw-analysis-label{font-size:.85rem;font-weight:700;white-space:nowrap;}
+  #fktw-alertbar .fktw-analysis .fktw-marquee{min-width:0;}
+  #fktw-alertbar .fktw-analysis .fktw-msg{font-weight:500;}
+  #fktw-alertbar .fktw-marquee:focus .fktw-track{animation-play-state:paused;}
+  @media(max-width:640px){#fktw-alertbar .fktw-analysis{gap:8px;padding:0 8px;}#fktw-alertbar .fktw-analysis-label{font-size:.72rem;}}
+  @media(prefers-reduced-motion:reduce){#fktw-alertbar .fktw-analysis .fktw-track{animation:none;transform:none;}#fktw-alertbar .fktw-analysis .fktw-marquee{overflow-x:auto;}#fktw-alertbar .fktw-analysis .fktw-msg[aria-hidden]{display:none;}}
 
   /* กล่องเตือนเด่น (แสดงเฉพาะตอนน้ำขึ้นข้ามเกณฑ์) */
   #fktw-alertbar .fktw-wateralert{ display:flex; align-items:center; gap:10px;
@@ -363,12 +377,30 @@
   (function(){
     const meta=document.getElementById('dailySummaryMeta');
     const text=document.getElementById('dailySummaryText');
+    function updateAnalysisTicker(summary, timestamp){
+      const row=document.getElementById('fktw-analysis');
+      const track=document.getElementById('fktw-analysis-track');
+      track.replaceChildren();
+      row.hidden=!summary.trim();
+      if(row.hidden) return;
+      const message='📝 บทวิเคราะห์จากผู้ดูแล · '+timestamp+' · '+summary.replace(/\s+/g,' ').trim();
+      for(let i=0;i<2;i++){
+        const span=document.createElement('span');
+        span.className='fktw-msg';
+        span.textContent=message;
+        if(i===1) span.setAttribute('aria-hidden','true');
+        track.appendChild(span);
+      }
+      // รักษาความเร็วให้อ่านได้เมื่อบทวิเคราะห์ยาวขึ้น
+      track.style.animationDuration=Math.max(35,message.length*0.24)+'s';
+    }
     async function loadDailySummary(){
       try{
         const res=await fetch('data/daily-summary.txt',{cache:'no-store'});
         if(!res.ok) throw new Error('โหลดไม่สำเร็จ');
         const summary=await res.text();
         if(!summary.trim()){
+          updateAnalysisTicker('','');
           meta.textContent='ยังไม่มีบทสรุปจากผู้ดูแล';
           text.textContent='ผู้ดูแลสามารถเพิ่มบทสรุปรายวันผ่านลิงก์ด้านล่าง';
           return;
@@ -392,7 +424,9 @@
         }catch(e){
           meta.textContent='บทวิเคราะห์จากผู้ดูแล · ยังตรวจสอบวันที่และเวลาบันทึกไม่ได้ โปรดตรวจสอบความเป็นปัจจุบัน';
         }
+        updateAnalysisTicker(summary,meta.textContent);
       }catch(e){
+        updateAnalysisTicker('','');
         meta.textContent='ไม่สามารถโหลดบทสรุปรายวันได้';
         text.textContent='โปรดลองรีเฟรชอีกครั้ง ข้อความนี้ไม่ใช่การยืนยันว่าสถานการณ์ปลอดภัย';
       }
