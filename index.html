@@ -75,6 +75,14 @@
   /* สีช่วยแบ่งหมวดข้อมูล ไม่ใช่สีแสดงระดับเตือนภัย */
   .daily-summary-card{border-inline-start:5px solid #8b5cf6;background:linear-gradient(120deg,color-mix(in srgb,#8b5cf6 7%,var(--panel)),var(--panel) 75%);}
   .rain-timing-card{border-inline-start:5px solid #0ea5e9;background:linear-gradient(120deg,color-mix(in srgb,#0ea5e9 8%,var(--panel)),var(--panel) 75%);}
+  .ecmwf-card{border:1px solid var(--accent);border-top:5px solid #0284c7;background:linear-gradient(120deg,var(--accent-soft),var(--panel) 80%);}
+  .ecmwf-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+  .ecmwf-tag{border-radius:20px;background:var(--accent);color:var(--panel);padding:4px 12px;font-size:.8rem;font-weight:700;}
+  .ecmwf-values{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0;}
+  .ecmwf-value{padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);}
+  .ecmwf-value span{display:block;color:var(--muted);font-size:.85rem;}
+  .ecmwf-value strong{display:block;color:var(--accent);font-size:2rem;font-variant-numeric:tabular-nums;}
+  .ecmwf-value small{font-size:.85rem;font-weight:500;}
   .daily-summary-card h2,.rain-timing-card h2{display:flex;align-items:center;gap:8px;}
   #dailySummaryMeta,#rainTimingMeta{display:inline-block;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 10px;color:var(--ink);font-variant-numeric:tabular-nums;}
   #dailySummaryText{padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:10px;line-height:1.85;margin:8px 0 12px;}
@@ -362,6 +370,20 @@
     <div class="rk-scale"><span>ปกติ</span><span>เฝ้าระวัง</span><span>เสี่ยงสูง</span><span>อันตราย</span></div>
   </section>
 
+  <section class="card ecmwf-card" aria-labelledby="ecmwfTitle">
+    <div class="ecmwf-heading">
+      <h2 id="ecmwfTitle">🌍 พยากรณ์ฝนจากโมเดล ECMWF</h2>
+      <span class="ecmwf-tag">IFS 0.25° · ยุโรป</span>
+    </div>
+    <div class="ecmwf-values" aria-live="polite">
+      <div class="ecmwf-value"><span>ฝนสะสมคาดการณ์ 24 ชม.ข้างหน้า</span><strong id="ecmwf24">–</strong></div>
+      <div class="ecmwf-value"><span>ฝนสะสมคาดการณ์ 72 ชม.ข้างหน้า</span><strong id="ecmwf72">–</strong></div>
+    </div>
+    <p class="hint" id="ecmwfStatus" role="status">กำลังโหลด ECMWF IFS…</p>
+    <p class="hint">แสดงผล ECMWF แยกโมเดล ผ่าน Open-Meteo สำหรับพิกัด ต.ขุนตัดหวาย · ใช้ร่วมกับ GFS และ MET Norway ในการประเมินหลายแหล่ง ไม่ใช่ระดับเตือนภัยจากโมเดลเดียว · 72 ชม.รวมช่วง 24 ชม.แรกแล้ว</p>
+    <a href="#multiModelTitle">ดูตารางเปรียบเทียบทุกโมเดล ↓</a>
+  </section>
+
   <section class="card daily-summary-card" aria-labelledby="dailySummaryTitle">
     <h2 id="dailySummaryTitle">📝 บทสรุปรายวันจากผู้ดูแล</h2>
     <p class="hint" id="dailySummaryMeta">กำลังโหลดบทสรุป…</p>
@@ -468,7 +490,7 @@
 
   <!-- MULTI-SOURCE ANALYSIS -->
   <section class="card">
-    <h2>🔀 การวิเคราะห์หลายแหล่ง (ความเชื่อมั่นพยากรณ์)</h2>
+    <h2 id="multiModelTitle">🔀 การวิเคราะห์หลายแหล่ง (ความเชื่อมั่นพยากรณ์)</h2>
     <p class="hint">ประมวลผลพยากรณ์ฝนร่วมจาก ECMWF IFS 0.25° (ยุโรป), GFS และ MET Norway เพื่อดูค่าเฉลี่ยและช่วงความแตกต่าง · แถว Open-Meteo อัตโนมัติแสดงเพื่ออ้างอิงเท่านั้น ไม่รวมซ้ำในค่าเฉลี่ย · แบบจำลองอาจมีข้อมูลต้นทางร่วมกัน ความสอดคล้องไม่ใช่การรับประกันความแม่นยำ · ช่วงเวลาฝนวันนี้และกราฟรายวันยังเป็นพยากรณ์จากแหล่งหลัก Open-Meteo</p>
     <div id="msRows"><div class="loading">กำลังดึงข้อมูลหลายแหล่ง…</div></div>
     <div id="msSummary" class="ms-summary" style="display:none"></div>
@@ -871,6 +893,7 @@ async function metnoSrc(){
 }
 async function loadMultiSource(){
   const rowsEl=$('msRows'), sumEl=$('msSummary');
+  $('ecmwfStatus').textContent='กำลังอัปเดต ECMWF IFS…';
   const jobs=[
     {name:'ECMWF · IFS 0.25° (ยุโรป)', fn:()=>omModel('ecmwf_ifs025')},
     {name:'Open-Meteo · เลือกโมเดลอัตโนมัติ (อ้างอิง)', fn:()=>omModel(''), reference:true},
@@ -879,6 +902,14 @@ async function loadMultiSource(){
   ];
   const res=await Promise.allSettled(jobs.map(j=>j.fn()));
   const src=res.map((r,i)=> r.status==='fulfilled'?{name:jobs[i].name,reference:jobs[i].reference,...r.value}:{name:jobs[i].name,err:true});
+  const ecmwf=src[0];
+  for(const hours of [24,72]){
+    const value=ecmwf['n'+hours];
+    $('ecmwf'+hours).textContent=!ecmwf.err && Number.isFinite(value)?fmt(value,1)+' มม.':'ไม่มีข้อมูล';
+  }
+  $('ecmwfStatus').textContent=ecmwf.err || !Number.isFinite(ecmwf.n24)?
+    'โหลดข้อมูล ECMWF ไม่สำเร็จหรือข้อมูลไม่เพียงพอ — ไม่ได้หมายความว่าจะไม่มีฝน โปรดลองรีเฟรช':
+    'ดึงข้อมูล ECMWF ล่าสุดเมื่อ '+new Date().toLocaleString('th-TH',{timeZone:'Asia/Bangkok',dateStyle:'medium',timeStyle:'short'})+' น. (เวลาไทย) · ไม่ใช่เวลาเริ่มรันของโมเดล';
   let html='<div class="ms-head"><span>แหล่งข้อมูล</span><span>ฝน 24 ชม.</span><span>ฝน 72 ชม.</span></div>';
   src.forEach(s=>{ html+=`<div class="ms-row"><span>${s.name}</span>`+
     `<span>${s.err||s.n24==null?'—':fmt(s.n24,1)+' มม.'}</span>`+
