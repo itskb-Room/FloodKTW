@@ -44,3 +44,31 @@ const history = Array.from({ length: 25 }, (_, i) => ({
 }));
 assert.equal(updateHistory(history, {}).length, 20);
 console.log('History retention preserves 20 points even beyond 48 hours');
+const mergeFunction = html.slice(html.indexOf('function waterSeries('), html.indexOf('async function loadWaterLevel('));
+context.Map = Map;
+context.WL_LATEST = null;
+context.parseT = value => new Date(value.includes('Z') ? value : value.replace(' ', 'T') + '+07:00');
+vm.runInContext(mergeFunction, context);
+context.WL_HISTORY = [
+  { key: 'janah', datetime: '2026-11-09T00:30:00Z', msl: 2.64 },
+  { key: 'janah', datetime: '2026-11-09T04:30:00Z', msl: 2.60 },
+  { key: 'janah', datetime: '2026-11-09T05:30:00Z', msl: 9 },
+  { key: 'nathawi', datetime: '2026-11-09T00:30:00Z', msl: 20.30 },
+];
+const current = new Date('2026-11-09T11:30:00+07:00');
+const series = context.waterSeries('janah', [], current, 2.57);
+assert.equal(series.length, 2);
+assert.equal(series.at(-1).t, current.getTime());
+assert.equal(series.at(-1).v, 2.57);
+const mergedGraph = context.wlSparkline('janah', 4.75, series);
+assert.match(mergedGraph, /09\/11\/2569 11:30/);
+const trendFunction = html.slice(html.indexOf('function wlTrend(h)'), html.indexOf('// สร้าง badge'));
+context.WL_REF_WIN = 6 * 3600000;
+context.WL_TREND_MIN = 0.02;
+vm.runInContext(trendFunction, context);
+const trend = context.wlTrend(series);
+assert.equal(trend.dir, 'down');
+assert.ok(Math.abs(trend.dCm + 7) < 1e-8);
+assert.equal(trend.dt, 4);
+assert.equal(context.waterSeries('janah', [], null, 2.57).length, 0);
+console.log('Latest card reading, graph endpoint and trend use identical values and timestamps');

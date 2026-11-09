@@ -1044,9 +1044,9 @@ function wlTrendView(tr){
 }
 
 // กราฟเส้นเล็ก (sparkline) ระดับน้ำย้อนหลังจาก history-wl.json + เส้นประตลิ่ง
-function wlSparkline(key, bank){
-  if(!key || !Array.isArray(WL_HISTORY)) return '';
-  const all=WL_HISTORY.filter(r=>r.key===key && r.msl!=null)
+function wlSparkline(key, bank, series=null){
+  if(!series && (!key || !Array.isArray(WL_HISTORY))) return '';
+  const all=series || WL_HISTORY.filter(r=>r.key===key && r.msl!=null)
     .map(r=>({t:new Date(r.datetime).getTime(), v:Number(r.msl)}))
     .filter(p=>isFinite(p.t)&&isFinite(p.v)).sort((a,b)=>a.t-b.t);
   if(all.length<2) return '';
@@ -1126,6 +1126,26 @@ function serverTrend(key){
 }
 
 /* ===== ระดับน้ำคลอง ===== */
+function waterSeries(key, local, currentTime, currentLevel){
+  if(!currentTime || !Number.isFinite(currentTime.getTime()) || !Number.isFinite(currentLevel)) return [];
+  const end=currentTime.getTime(), points=new Map();
+  const add=(t,v)=>{
+    if(Number.isFinite(t) && Number.isFinite(v) && t<=end) points.set(t,{t,v});
+  };
+  for(const row of Array.isArray(WL_HISTORY)?WL_HISTORY:[]){
+    if(row.key===key && row.msl!=null) add(new Date(row.datetime).getTime(),Number(row.msl));
+  }
+  const server=WL_LATEST && WL_LATEST.waterlevel && WL_LATEST.waterlevel[key];
+  if(server && server.waterlevel_msl!=null){
+    const time=parseT(server.datetime);
+    if(time) add(time.getTime(),Number(server.waterlevel_msl));
+  }
+  for(const point of local || []) add(point.t,point.v);
+  // ค่าวัดบนการ์ดมีลำดับความสำคัญสูงสุด รวมถึงกรณีแก้ค่าที่เวลาเดิม
+  add(end,currentLevel);
+  return [...points.values()].sort((a,b)=>a.t-b.t).slice(-20);
+}
+
 async function loadWaterLevel(){
   const box=$('wlCards'), msg=$('wlMsg');
   try{
@@ -1146,23 +1166,24 @@ async function loadWaterLevel(){
       const st0=s.station||{}, gc=s.geocode||{};
       const name=txt(st0.tele_station_name)||('สถานี '+st0.id);
       const amp=txt(gc.amphoe_name), tum=txt(gc.tumbon_name), river=txt(s.river_name);
-      const wl=Number(s.waterlevel_msl), bank=Number(st0.min_bank);
+      const wl=s.waterlevel_msl==null?NaN:Number(s.waterlevel_msl), bank=st0.min_bank==null?NaN:Number(st0.min_bank);
       let fb=s.diff_wl_bank==null?NaN:Number(s.diff_wl_bank);
       if(!isFinite(fb)) fb=(isFinite(bank)&&isFinite(wl))? bank-wl : null;
       const t=parseT(s.waterlevel_datetime);
-      const tsTxt=t?t.toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}):'';
+      const tsTxt=t?formatWaterHistoryTime(t):'';
       const stale=!t || !Number.isFinite(t.getTime()) || (Date.now()-t.getTime())>6*3.6e6;
       if(!stale && fb!=null && fb>=1.5) capacityKeys.add(wlKeyOf(st0, amp));
       if(fb!=null && !stale && (minFree==null||fb<minFree)){ minFree=fb; minName=name; }   // ใช้คำนวณความเสี่ยงเฉพาะข้อมูลที่ไม่เก่าเกิน 6 ชม.
       const st=wlStatus(fb);
       const pct= fb==null?0 : Math.max(4,Math.min(100,(1-fb/3)*100));   // เต็มเมื่อใกล้/ล้นตลิ่ง (สเกล 3 ม.)
-      // แนวโน้มน้ำขึ้น/ลง: ใช้ข้อมูลเซิร์ฟเวอร์เป็นหลัก (latest.json → history-wl.json) แล้ว fallback เป็นที่จดเอง
+      // ใช้ค่าล่าสุดบนการ์ดเป็นจุดปลายเดียวกันสำหรับกราฟและแนวโน้ม
       const hist = (!stale && isFinite(wl)) ? wlRecord(st0.id, t, wl) : (lsGet(WLH_KEY(st0.id))||[]);  // ยังจดไว้สำรอง
       const wlk = wlKeyOf(st0, amp);
-      let tr = serverTrend(wlk);
-      if(!tr){ const tl=wlTrend(hist); if(tl.dir!=null) tr={dir:tl.dir, dCm:tl.dCm, dt:tl.dt, source:'local', detail:''}; }
+      const series=waterSeries(wlk,hist,t,wl);
+      const tl=wlTrend(series);
+      const tr=tl.dir==null?null:{...tl,source:'hist',detail:'คำนวณถึงเวลาวัดล่าสุด '+tsTxt};
       const tv = wlTrendView(tr);
-      const spark = wlSparkline(wlk, bank);
+      const spark = wlSparkline(wlk, bank,series);
       html+=`<div class="wl-card">
         <div class="wl-top"><div><div class="wl-name">${name}</div>
           <div class="wl-sub">${[river,tum&&('ต.'+tum),amp&&('อ.'+amp)].filter(Boolean).join(' · ')}</div></div>
