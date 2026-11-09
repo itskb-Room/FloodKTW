@@ -469,7 +469,7 @@
   <!-- MULTI-SOURCE ANALYSIS -->
   <section class="card">
     <h2>🔀 การวิเคราะห์หลายแหล่ง (ความเชื่อมั่นพยากรณ์)</h2>
-    <p class="hint">เทียบพยากรณ์ฝนจากหลายแบบจำลอง/หน่วยงานอิสระ เพื่อหา “ค่าคาดการณ์ร่วม” และดูความสอดคล้อง — ยิ่งหลายแหล่งตรงกัน ยิ่งเชื่อถือได้ · ระบบจะนำค่าที่ปลอดภัยที่สุดมาประเมินความเสี่ยง</p>
+    <p class="hint">ประมวลผลพยากรณ์ฝนร่วมจาก ECMWF IFS 0.25° (ยุโรป), GFS และ MET Norway เพื่อดูค่าเฉลี่ยและช่วงความแตกต่าง · แถว Open-Meteo อัตโนมัติแสดงเพื่ออ้างอิงเท่านั้น ไม่รวมซ้ำในค่าเฉลี่ย · แบบจำลองอาจมีข้อมูลต้นทางร่วมกัน ความสอดคล้องไม่ใช่การรับประกันความแม่นยำ · ช่วงเวลาฝนวันนี้และกราฟรายวันยังเป็นพยากรณ์จากแหล่งหลัก Open-Meteo</p>
     <div id="msRows"><div class="loading">กำลังดึงข้อมูลหลายแหล่ง…</div></div>
     <div id="msSummary" class="ms-summary" style="display:none"></div>
   </section>
@@ -856,7 +856,7 @@ async function omModel(model){
     `&hourly=precipitation&forecast_days=4&timezone=Asia%2FBangkok`+(model?('&models='+model):'');
   const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error('om');
   const d=await r.json(); const t=(d.hourly&&d.hourly.time)||[], p=(d.hourly&&d.hourly.precipitation)||[];
-  const now=new Date(); let i=t.findIndex(x=>new Date(x)>now); if(i<0)i=0;
+   const now=new Date(); let i=t.findIndex(x=>new Date(x+'+07:00')>now); if(i<0) return {n24:null,n72:null};
   return {n24:sumRange(p,i,i+24), n72:sumRange(p,i,i+72)};
 }
 async function metnoSrc(){
@@ -872,19 +872,21 @@ async function metnoSrc(){
 async function loadMultiSource(){
   const rowsEl=$('msRows'), sumEl=$('msSummary');
   const jobs=[
-    {name:'Open-Meteo · ECMWF/ผสม', fn:()=>omModel('')},
+    {name:'ECMWF · IFS 0.25° (ยุโรป)', fn:()=>omModel('ecmwf_ifs025')},
+    {name:'Open-Meteo · เลือกโมเดลอัตโนมัติ (อ้างอิง)', fn:()=>omModel(''), reference:true},
     {name:'Open-Meteo · GFS (สหรัฐฯ)', fn:()=>omModel('gfs_seamless')},
     {name:'MET Norway · Yr (นอร์เวย์)', fn:()=>metnoSrc()},
   ];
   const res=await Promise.allSettled(jobs.map(j=>j.fn()));
-  const src=res.map((r,i)=> r.status==='fulfilled'?{name:jobs[i].name,...r.value}:{name:jobs[i].name,err:true});
+  const src=res.map((r,i)=> r.status==='fulfilled'?{name:jobs[i].name,reference:jobs[i].reference,...r.value}:{name:jobs[i].name,err:true});
   let html='<div class="ms-head"><span>แหล่งข้อมูล</span><span>ฝน 24 ชม.</span><span>ฝน 72 ชม.</span></div>';
   src.forEach(s=>{ html+=`<div class="ms-row"><span>${s.name}</span>`+
     `<span>${s.err||s.n24==null?'—':fmt(s.n24,1)+' มม.'}</span>`+
     `<span>${s.err||s.n72==null?'—':fmt(s.n72,0)+' มม.'}</span></div>`; });
   rowsEl.innerHTML=html;
-  const v24=src.filter(s=>!s.err&&s.n24!=null).map(s=>s.n24);
-  const v72=src.filter(s=>!s.err&&s.n72!=null).map(s=>s.n72);
+  // โหมดอัตโนมัติอาจใช้ ECMWF ซ้ำ จึงแสดงอ้างอิงแต่ไม่นับเป็นอีกโมเดลในค่าเฉลี่ย
+  const v24=src.filter(s=>!s.err&&!s.reference&&s.n24!=null).map(s=>s.n24);
+  const v72=src.filter(s=>!s.err&&!s.reference&&s.n72!=null).map(s=>s.n72);
   if(v24.length){
     const avg=v24.reduce((a,b)=>a+b,0)/v24.length, mn=Math.min(...v24), mx=Math.max(...v24);
     const spread= avg>1 ? (mx-mn)/avg : 0;
@@ -895,7 +897,7 @@ async function loadMultiSource(){
     sumEl.style.display='block';
     sumEl.innerHTML=`ค่าคาดการณ์ร่วม 24 ชม. ≈ <b>${fmt(avg,1)} มม.</b> (ช่วง ${fmt(mn,1)}–${fmt(mx,1)} มม.)`+
       (avg72!=null?` · 72 ชม. ≈ <b>${fmt(avg72,0)} มม.</b>`:'')+
-      ` · ความสอดคล้องของแหล่งข้อมูล: <b style="color:${confCol}">${conf}</b>`+
+      ` · ประมวลผลร่วม ECMWF IFS, GFS และ MET Norway ตามแหล่งที่โหลดสำเร็จ (ไม่รวมแถวอ้างอิง) · ความสอดคล้องของแหล่งข้อมูล: <b style="color:${confCol}">${conf}</b>`+
       (conf==='ต่ำ'?' <span style="color:var(--muted)">(แบบจำลองยังไม่ลงตัว ควรติดตามใกล้ชิด)</span>':'');
     computeRisk();
   } else {

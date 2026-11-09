@@ -2,7 +2,7 @@
 // สร้าง data/latest.json สำหรับ "ระบบเฝ้าระวังน้ำท่วม ต.ขุนตัดหวาย"
 // รันโดย GitHub Actions (Node 20+, มี global fetch) — ไม่ต้องติดตั้ง dependency ใด ๆ
 //
-// ดึง 5 แหล่ง: Open-Meteo ECMWF/ผสม, Open-Meteo GFS, MET Norway (Yr),
+// ดึง 5 แหล่ง: Open-Meteo ECMWF IFS 0.25°, Open-Meteo GFS, MET Norway (Yr),
 // thaiwater rain_24h (จะนะ/นาทวี), thaiwater waterlevel (สถานี 849/850)
 // คำนวณ: พยากรณ์ฝน 24ชม./6ชม.ข้างหน้า (consensus+ช่วง), ฝนวัดจริงสูงสุด, ระดับน้ำคลอง,
 // แล้วประเมินระดับความเสี่ยง (เอาค่าสูงสุดจาก 3 เกณฑ์) เขียนลง data/latest.json
@@ -277,7 +277,7 @@ async function main() {
 
   // ยิงทุกแหล่งพร้อมกัน
   const jobs = {
-    ecmwf: getJSON(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=precipitation&forecast_days=4&timezone=Asia%2FBangkok`),
+    ecmwf: getJSON(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=precipitation&forecast_days=4&timezone=Asia%2FBangkok&models=ecmwf_ifs025`),
     gfs:   getJSON(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=precipitation&forecast_days=4&timezone=Asia%2FBangkok&models=gfs_seamless`),
     metno: getJSON(`https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${LAT}&lon=${LON}`),
     rain:  getJSON('https://api-v3.thaiwater.net/api/v1/thaiwater30/public/rain_24h?province_code=90'),
@@ -320,7 +320,7 @@ async function main() {
   }
   const max6 = vals6.length ? Math.max(...vals6) : null;
 
-  out.forecast_24h = { by_source: f24, consensus_mm: consensus, min_mm: min, max_mm: max, chosen_mm: chosen, agreement, source_count: vals24.length };
+  out.forecast_24h = { by_source: f24, models: { ecmwf: 'ecmwf_ifs025', gfs: 'gfs_seamless', metno: 'MET Norway locationforecast' }, consensus_mm: consensus, min_mm: min, max_mm: max, chosen_mm: chosen, agreement, source_count: vals24.length };
   out.forecast_6h  = { by_source: f6, max_mm: max6 };
 
   // ---- ฝนวัดจริง ----
