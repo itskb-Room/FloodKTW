@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-11-10T21:57:27.056Z",
-  "generated_at_th": "11/11/2569 04:57:27",
+  "generated_at": "2026-11-11T01:42:49.329Z",
+  "generated_at_th": "11/11/2569 08:42:49",
   "location": {
     "name": "ต.ขุนตัดหวาย อ.จะนะ จ.สงขลา",
     "lat": 6.7936,
@@ -16,76 +16,76 @@
   },
   "forecast_24h": {
     "by_source": {
-      "ecmwf": 9.3,
+      "ecmwf": 11.6,
       "gfs": 4,
-      "metno": 11
+      "metno": 7.3
     },
     "models": {
       "ecmwf": "ecmwf_ifs025",
       "gfs": "gfs_seamless",
       "metno": "MET Norway locationforecast"
     },
-    "consensus_mm": 8.1,
+    "consensus_mm": 7.6,
     "min_mm": 4,
-    "max_mm": 11,
-    "chosen_mm": 8.1,
-    "agreement": "สอดคล้องกันดี (ช่วง 7 มม.)",
+    "max_mm": 11.6,
+    "chosen_mm": 7.6,
+    "agreement": "สอดคล้องกันดี (ช่วง 7.6 มม.)",
     "source_count": 3
   },
   "forecast_6h": {
     "by_source": {
-      "ecmwf": 4.2,
-      "gfs": 1.8,
-      "metno": 4.9
+      "ecmwf": 5.5,
+      "gfs": 4,
+      "metno": 2.8
     },
-    "max_mm": 4.9
+    "max_mm": 5.5
   },
   "rain_observed": {
     "janah": {
-      "max_mm": 9,
-      "max_station": "บ้านปากช่อง",
+      "max_mm": 7.5,
+      "max_station": "บ้านคูนายสังข์",
       "max_rain_1h": 0,
-      "avg_mm": 3.4,
-      "datetime": "2026-11-11 03:00",
-      "age_hours": 2,
+      "avg_mm": 2.8,
+      "datetime": "2026-11-11 07:00",
+      "age_hours": 1.7,
       "station_count": 9
     },
     "nathawi": {
       "max_mm": 9,
       "max_station": "บ้านคอก-วังไทร",
       "max_rain_1h": 0,
-      "avg_mm": 5.3,
-      "datetime": "2026-11-11 03:00",
-      "age_hours": 2,
+      "avg_mm": 5.4,
+      "datetime": "2026-11-11 07:00",
+      "age_hours": 1.7,
       "station_count": 11
     }
   },
   "waterlevel": {
     "janah": {
       "station": "จะนะ",
-      "waterlevel_msl": 2.33,
-      "waterlevel_msl_previous": 2.47,
+      "waterlevel_msl": 2.74,
+      "waterlevel_msl_previous": 2.63,
       "min_bank": 4.75,
-      "diff_wl_bank": 2.42,
+      "diff_wl_bank": 2.01,
       "situation_level": 1,
-      "datetime": "2026-11-11 04:40",
-      "age_hours": 0.3,
+      "datetime": "2026-11-11 08:30",
+      "age_hours": 0.2,
       "rise": {
-        "trend": "ทรงตัว",
-        "detail": "ทรงตัว +0.02 ม. ในช่วง ~5.5 ชม. (จาก 10/11 23:10 น. ที่ 2.31 ม.รทก. → ปัจจุบัน 2.33 ม.รทก.)",
+        "trend": "สูงขึ้น",
+        "detail": "สูงขึ้น +0.41 ม. ในช่วง ~3.8 ชม. (จาก 11/11 04:40 น. ที่ 2.33 ม.รทก. → ปัจจุบัน 2.74 ม.รทก.)",
         "since_prev": {
-          "delta_m": 0.02,
-          "from_datetime_th": "10/11 23:10"
+          "delta_m": 0.41,
+          "from_datetime_th": "11/11 04:40"
         },
         "changes": {
           "1h": null,
           "3h": null,
           "6h": {
-            "delta_m": 0.02,
-            "over_hours": 5.5,
-            "from_datetime": "2026-11-10T16:10:00.000Z",
-            "from_datetime_th": "10/11 23:10",
-            "from_msl": 2.31
+            "delta_m": 0.41,
+            "over_hours": 3.8,
+            "from_datetime": "2026-11-10T21:40:00.000Z",
+            "from_datetime_th": "11/11 04:40",
+            "from_msl": 2.33
           }
         }
       }
@@ -97,24 +97,24 @@
       "min_bank": 22.71,
       "diff_wl_bank": 2.3,
       "situation_level": 3,
-      "datetime": "2026-11-11 04:40",
-      "age_hours": 0.3,
+      "datetime": "2026-11-11 08:30",
+      "age_hours": 0.2,
       "rise": {
         "trend": "ทรงตัว",
-        "detail": "ทรงตัว -0.01 ม. ในช่วง ~5.5 ชม. (จาก 10/11 23:10 น. ที่ 20.42 ม.รทก. → ปัจจุบัน 20.41 ม.รทก.)",
+        "detail": "ทรงตัว 0 ม. ในช่วง ~3.8 ชม. (จาก 11/11 04:40 น. ที่ 20.41 ม.รทก. → ปัจจุบัน 20.41 ม.รทก.)",
         "since_prev": {
-          "delta_m": -0.01,
-          "from_datetime_th": "10/11 23:10"
+          "delta_m": 0,
+          "from_datetime_th": "11/11 04:40"
         },
         "changes": {
           "1h": null,
           "3h": null,
           "6h": {
-            "delta_m": -0.01,
-            "over_hours": 5.5,
-            "from_datetime": "2026-11-10T16:10:00.000Z",
-            "from_datetime_th": "10/11 23:10",
-            "from_msl": 20.42
+            "delta_m": 0,
+            "over_hours": 3.8,
+            "from_datetime": "2026-11-10T21:40:00.000Z",
+            "from_datetime_th": "11/11 04:40",
+            "from_msl": 20.41
           }
         }
       }
@@ -125,18 +125,18 @@
     "level_code": "normal",
     "level_index": 0,
     "insufficient_data": false,
-    "score": 15.5,
+    "score": 15.1,
     "data_fresh": true,
     "forecast_level": "ปกติ",
     "observed_level": "ปกติ",
     "waterlevel_level": "ปกติ",
     "canal_capacity_available": true,
     "reasons": [
-      "พยากรณ์ 24ชม. 8.1 มม. → ปกติ",
-      "ฝนจริงจะนะสูงสุด 9 มม. (บ้านปากช่อง, เก่า 2 ชม.)",
-      "ฝนจริงนาทวีสูงสุด 9 มม. (บ้านคอก-วังไทร, เก่า 2 ชม.)",
-      "คลองจะนะเหลือถึงตลิ่ง 2.42 ม. (เก่า 0.3 ชม.) — ทรงตัว +0.02 ม. ในช่วง ~5.5 ชม. (จาก 10/11 23:10 น. ที่ 2.31 ม.รทก. → ปัจจุบัน 2.33 ม.รทก.)",
-      "คลองนาทวีเหลือถึงตลิ่ง 2.3 ม. (เก่า 0.3 ชม.) — ทรงตัว -0.01 ม. ในช่วง ~5.5 ชม. (จาก 10/11 23:10 น. ที่ 20.42 ม.รทก. → ปัจจุบัน 20.41 ม.รทก.)"
+      "พยากรณ์ 24ชม. 7.6 มม. → ปกติ",
+      "ฝนจริงจะนะสูงสุด 7.5 มม. (บ้านคูนายสังข์, เก่า 1.7 ชม.)",
+      "ฝนจริงนาทวีสูงสุด 9 มม. (บ้านคอก-วังไทร, เก่า 1.7 ชม.)",
+      "คลองจะนะเหลือถึงตลิ่ง 2.01 ม. (เก่า 0.2 ชม.) — ⬆ สูงขึ้น +0.41 ม. ในช่วง ~3.8 ชม. (จาก 11/11 04:40 น. ที่ 2.33 ม.รทก. → ปัจจุบัน 2.74 ม.รทก.)",
+      "คลองนาทวีเหลือถึงตลิ่ง 2.3 ม. (เก่า 0.2 ชม.) — ทรงตัว 0 ม. ในช่วง ~3.8 ชม. (จาก 11/11 04:40 น. ที่ 20.41 ม.รทก. → ปัจจุบัน 20.41 ม.รทก.)"
     ],
     "note": "ประเมินจากตัวเลข 3 เกณฑ์เท่านั้น — ยังต้องพิจารณาประกาศทางการ (TMD/สทนช./ปภ./ผู้ว่าฯ) ประกอบ ซึ่งไฟล์นี้ไม่ได้ดึงอัตโนมัติ. ไม่ใช่การเตือนภัยอย่างเป็นทางการ"
   },
@@ -145,6 +145,8 @@
     "water_level": "ปกติ",
     "escalated": false,
     "sent": false,
-    "lines": []
+    "lines": [
+      "คลองจะนะ: เหลือถึงตลิ่ง 2.01 ม. (ปกติ) | สูงขึ้น +0.41 ม. ในช่วง ~3.8 ชม. (จาก 11/11 04:40 น. ที่ 2.33 ม.รทก. → ปัจจุบัน 2.74 ม.รทก.)"
+    ]
   }
 }
