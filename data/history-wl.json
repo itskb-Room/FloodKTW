@@ -1,20 +1,6 @@
 [
   {
     "key": "janah",
-    "datetime": "2026-11-11T01:30:00.000Z",
-    "datetime_th": "11/11/2569 08:30:00",
-    "msl": 2.74,
-    "diff_wl_bank": 2.01
-  },
-  {
-    "key": "nathawi",
-    "datetime": "2026-11-11T01:30:00.000Z",
-    "datetime_th": "11/11/2569 08:30:00",
-    "msl": 20.41,
-    "diff_wl_bank": 2.3
-  },
-  {
-    "key": "janah",
     "datetime": "2026-11-11T08:10:00.000Z",
     "datetime_th": "11/11/2569 15:10:00",
     "msl": 2.27,
@@ -278,5 +264,19 @@
     "datetime_th": "16/11/2569 03:30:00",
     "msl": 20.17,
     "diff_wl_bank": 2.54
+  },
+  {
+    "key": "janah",
+    "datetime": "2026-11-16T09:00:00.000Z",
+    "datetime_th": "16/11/2569 16:00:00",
+    "msl": 2.29,
+    "diff_wl_bank": 2.46
+  },
+  {
+    "key": "nathawi",
+    "datetime": "2026-11-16T09:00:00.000Z",
+    "datetime_th": "16/11/2569 16:00:00",
+    "msl": 20.71,
+    "diff_wl_bank": 2
   }
 ]
