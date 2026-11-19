@@ -91,7 +91,12 @@ function parseRain(j) {
   const summarize = (list) => {
     const vals = list
       .map((s) => ({
+        station_id: s?.station?.id ?? null,
+        station_code: s?.station?.tele_station_oldcode ?? null,
         name: thName(s?.station?.tele_station_name) || thName(s?.station?.station_name),
+        tambon: thName(s?.geocode?.tumbon_name),
+        lat: num(s?.station?.tele_station_lat),
+        lon: num(s?.station?.tele_station_long),
         rain_1h: num(s?.rain_1h),
         rain_24h: num(s?.rain_24h),
         datetime: s?.rainfall_datetime ?? null,
@@ -103,6 +108,7 @@ function parseRain(j) {
     return {
       max_mm: max.rain_24h, max_station: max.name, max_rain_1h: max.rain_1h,
       avg_mm: avg, datetime: max.datetime, age_hours: ageHours(max.datetime), station_count: vals.length,
+      stations: vals,
     };
   };
   return { janah: summarize(pick('จะนะ')), nathawi: summarize(pick('นาทวี')) };
