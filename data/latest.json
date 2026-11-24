@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-11-23T13:40:21.358Z",
-  "generated_at_th": "23/11/2569 20:40:21",
+  "generated_at": "2026-11-24T01:12:23.440Z",
+  "generated_at_th": "24/11/2569 08:12:23",
   "location": {
     "name": "ต.ขุนตัดหวาย อ.จะนะ จ.สงขลา",
     "lat": 6.7936,
@@ -8,46 +8,46 @@
     "elevation_m": 16
   },
   "sources": {
-    "ecmwf": "ok",
-    "gfs": "ok",
+    "ecmwf": "error: fetch failed",
+    "gfs": "error: fetch failed",
     "metno": "ok",
     "rain": "ok",
     "wl": "ok"
   },
   "forecast_24h": {
     "by_source": {
-      "ecmwf": 9.4,
-      "gfs": 0,
-      "metno": 7.6
+      "ecmwf": null,
+      "gfs": null,
+      "metno": 10.1
     },
     "models": {
       "ecmwf": "ecmwf_ifs025",
       "gfs": "gfs_seamless",
       "metno": "MET Norway locationforecast"
     },
-    "consensus_mm": 5.7,
-    "min_mm": 0,
-    "max_mm": 9.4,
-    "chosen_mm": 5.7,
-    "agreement": "สอดคล้องกันดี (ช่วง 9.4 มม.)",
-    "source_count": 3
+    "consensus_mm": 10.1,
+    "min_mm": 10.1,
+    "max_mm": 10.1,
+    "chosen_mm": 10.1,
+    "agreement": "มีแหล่งเดียว",
+    "source_count": 1
   },
   "forecast_6h": {
     "by_source": {
-      "ecmwf": 0,
-      "gfs": 0,
-      "metno": 0
+      "ecmwf": null,
+      "gfs": null,
+      "metno": 1.9
     },
-    "max_mm": 0
+    "max_mm": 1.9
   },
   "rain_observed": {
     "janah": {
-      "max_mm": 28.5,
+      "max_mm": 17,
       "max_station": "บ้านควนไม้ไผ่",
-      "max_rain_1h": 0,
-      "avg_mm": 15.4,
-      "datetime": "2026-11-23 18:00",
-      "age_hours": 2.7,
+      "max_rain_1h": 0.5,
+      "avg_mm": 8.7,
+      "datetime": "2026-11-24 06:00",
+      "age_hours": 2.2,
       "station_count": 3,
       "stations": [
         {
@@ -57,9 +57,9 @@
           "tambon": "นาหว้า",
           "lat": 6.919856,
           "lon": 100.643306,
-          "rain_1h": 0,
-          "rain_24h": 28.5,
-          "datetime": "2026-11-23 18:00"
+          "rain_1h": 0.5,
+          "rain_24h": 17,
+          "datetime": "2026-11-24 06:00"
         },
         {
           "station_id": 849,
@@ -68,9 +68,9 @@
           "tambon": "บ้านนา",
           "lat": 6.916742,
           "lon": 100.72962,
-          "rain_1h": 0.4,
-          "rain_24h": 9.6,
-          "datetime": "2026-11-23 20:00"
+          "rain_1h": 0,
+          "rain_24h": 4.6,
+          "datetime": "2026-11-24 07:00"
         },
         {
           "station_id": 1123670,
@@ -79,19 +79,19 @@
           "tambon": "บ้านนา",
           "lat": 6.897362,
           "lon": 100.77132,
-          "rain_1h": null,
-          "rain_24h": 8,
-          "datetime": "2026-11-23 19:00"
+          "rain_1h": 0,
+          "rain_24h": 4.5,
+          "datetime": "2026-11-24 06:00"
         }
       ]
     },
     "nathawi": {
-      "max_mm": 11,
+      "max_mm": 10.5,
       "max_station": "บ้านวัด",
-      "max_rain_1h": null,
-      "avg_mm": 4.5,
-      "datetime": "2026-11-23 19:00",
-      "age_hours": 1.7,
+      "max_rain_1h": 0,
+      "avg_mm": 2.2,
+      "datetime": "2026-11-24 06:00",
+      "age_hours": 2.2,
       "station_count": 11,
       "stations": [
         {
@@ -101,9 +101,31 @@
           "tambon": "ประกอบ",
           "lat": 6.487867,
           "lon": 100.672471,
-          "rain_1h": null,
-          "rain_24h": 11,
-          "datetime": "2026-11-23 19:00"
+          "rain_1h": 0,
+          "rain_24h": 10.5,
+          "datetime": "2026-11-24 06:00"
+        },
+        {
+          "station_id": 1080980,
+          "station_code": "STN1691",
+          "name": "บ้านหว้าหลัง",
+          "tambon": "สะท้อน",
+          "lat": 6.644711,
+          "lon": 100.734254,
+          "rain_1h": 0,
+          "rain_24h": 2.5,
+          "datetime": "2026-11-24 06:00"
+        },
+        {
+          "station_id": 1080973,
+          "station_code": "STN1684",
+          "name": "บ้านวังใหญ่",
+          "tambon": "นาทวี",
+          "lat": 6.705379,
+          "lon": 100.742996,
+          "rain_1h": 0,
+          "rain_24h": 2.5,
+          "datetime": "2026-11-24 06:00"
         },
         {
           "station_id": 1080981,
@@ -112,9 +134,31 @@
           "tambon": "คลองทราย",
           "lat": 6.696497,
           "lon": 100.586443,
-          "rain_1h": null,
-          "rain_24h": 8.5,
-          "datetime": "2026-11-23 19:00"
+          "rain_1h": 0,
+          "rain_24h": 2,
+          "datetime": "2026-11-24 06:00"
+        },
+        {
+          "station_id": 1081003,
+          "station_code": "STN1714",
+          "name": "บ้านคลองไข่มุก",
+          "tambon": "คลองกวาง",
+          "lat": 6.640181,
+          "lon": 100.619208,
+          "rain_1h": 0,
+          "rain_24h": 2,
+          "datetime": "2026-11-24 06:00"
+        },
+        {
+          "station_id": 2012,
+          "station_code": "STN0845",
+          "name": "บ้านตลาดนาทวี",
+          "tambon": "นาทวี",
+          "lat": 6.741373,
+          "lon": 100.694815,
+          "rain_1h": 0,
+          "rain_24h": 1.5,
+          "datetime": "2026-11-24 06:00"
         },
         {
           "station_id": 2013,
@@ -124,74 +168,8 @@
           "lat": 6.732478,
           "lon": 100.800317,
           "rain_1h": 0,
-          "rain_24h": 6.5,
-          "datetime": "2026-11-23 18:00"
-        },
-        {
-          "station_id": 2012,
-          "station_code": "STN0845",
-          "name": "บ้านตลาดนาทวี",
-          "tambon": "นาทวี",
-          "lat": 6.741373,
-          "lon": 100.694815,
-          "rain_1h": null,
-          "rain_24h": 6.5,
-          "datetime": "2026-11-23 19:00"
-        },
-        {
-          "station_id": 850,
-          "station_code": "JNA002",
-          "name": "นาทวี",
-          "tambon": "นาทวี",
-          "lat": 6.738124,
-          "lon": 100.69319,
-          "rain_1h": 0,
-          "rain_24h": 6,
-          "datetime": "2026-11-23 20:00"
-        },
-        {
-          "station_id": 1081003,
-          "station_code": "STN1714",
-          "name": "บ้านคลองไข่มุก",
-          "tambon": "คลองกวาง",
-          "lat": 6.640181,
-          "lon": 100.619208,
-          "rain_1h": null,
-          "rain_24h": 4,
-          "datetime": "2026-11-23 19:00"
-        },
-        {
-          "station_id": 1080973,
-          "station_code": "STN1684",
-          "name": "บ้านวังใหญ่",
-          "tambon": "นาทวี",
-          "lat": 6.705379,
-          "lon": 100.742996,
-          "rain_1h": null,
-          "rain_24h": 3,
-          "datetime": "2026-11-23 19:00"
-        },
-        {
-          "station_id": 1080980,
-          "station_code": "STN1691",
-          "name": "บ้านหว้าหลัง",
-          "tambon": "สะท้อน",
-          "lat": 6.644711,
-          "lon": 100.734254,
-          "rain_1h": null,
-          "rain_24h": 2.5,
-          "datetime": "2026-11-23 19:00"
-        },
-        {
-          "station_id": 2014,
-          "station_code": "STN0507",
-          "name": "บ้านคอก-วังไทร",
-          "tambon": "ทับช้าง",
-          "lat": 6.585939,
-          "lon": 100.672797,
-          "rain_1h": null,
-          "rain_24h": 1,
-          "datetime": "2026-11-23 19:00"
+          "rain_24h": 1.5,
+          "datetime": "2026-11-24 06:00"
         },
         {
           "station_id": 2009,
@@ -202,7 +180,29 @@
           "lon": 100.625724,
           "rain_1h": 0,
           "rain_24h": 1,
-          "datetime": "2026-11-23 18:00"
+          "datetime": "2026-11-24 00:00"
+        },
+        {
+          "station_id": 850,
+          "station_code": "JNA002",
+          "name": "นาทวี",
+          "tambon": "นาทวี",
+          "lat": 6.738124,
+          "lon": 100.69319,
+          "rain_1h": 0,
+          "rain_24h": 0.6,
+          "datetime": "2026-11-24 07:00"
+        },
+        {
+          "station_id": 2014,
+          "station_code": "STN0507",
+          "name": "บ้านคอก-วังไทร",
+          "tambon": "ทับช้าง",
+          "lat": 6.585939,
+          "lon": 100.672797,
+          "rain_1h": 0,
+          "rain_24h": 0.5,
+          "datetime": "2026-11-24 06:00"
         },
         {
           "station_id": 1080896,
@@ -211,9 +211,9 @@
           "tambon": "สะท้อน",
           "lat": 6.547067,
           "lon": 100.734004,
-          "rain_1h": null,
+          "rain_1h": 0,
           "rain_24h": 0,
-          "datetime": "2026-11-23 19:00"
+          "datetime": "2026-11-24 06:00"
         }
       ]
     }
@@ -221,19 +221,19 @@
   "waterlevel": {
     "janah": {
       "station": "จะนะ",
-      "waterlevel_msl": 2.76,
-      "waterlevel_msl_previous": 2.76,
+      "waterlevel_msl": 2.8,
+      "waterlevel_msl_previous": 3.09,
       "min_bank": 4.75,
-      "diff_wl_bank": 1.99,
+      "diff_wl_bank": 1.95,
       "situation_level": 1,
-      "datetime": "2026-11-23 20:20",
-      "age_hours": 0.3,
+      "datetime": "2026-11-24 08:00",
+      "age_hours": 0.2,
       "rise": {
-        "trend": "ทรงตัว",
-        "detail": "ทรงตัว -0.02 ม. ในช่วง ~9.8 ชม. (จาก 23/11 10:30 น. ที่ 2.78 ม.รทก. → ปัจจุบัน 2.76 ม.รทก.)",
+        "trend": "สูงขึ้น",
+        "detail": "สูงขึ้น +0.04 ม. ในช่วง ~11.7 ชม. (จาก 23/11 20:20 น. ที่ 2.76 ม.รทก. → ปัจจุบัน 2.8 ม.รทก.)",
         "since_prev": {
-          "delta_m": -0.02,
-          "from_datetime_th": "23/11 10:30"
+          "delta_m": 0.04,
+          "from_datetime_th": "23/11 20:20"
         },
         "changes": {
           "1h": null,
@@ -244,19 +244,19 @@
     },
     "nathawi": {
       "station": "นาทวี",
-      "waterlevel_msl": 20.62,
-      "waterlevel_msl_previous": 20.62,
+      "waterlevel_msl": 20.56,
+      "waterlevel_msl_previous": 20.56,
       "min_bank": 22.71,
-      "diff_wl_bank": 2.09,
+      "diff_wl_bank": 2.15,
       "situation_level": 3,
-      "datetime": "2026-11-23 20:20",
-      "age_hours": 0.3,
+      "datetime": "2026-11-24 08:00",
+      "age_hours": 0.2,
       "rise": {
-        "trend": "ทรงตัว",
-        "detail": "ทรงตัว -0.02 ม. ในช่วง ~9.8 ชม. (จาก 23/11 10:30 น. ที่ 20.64 ม.รทก. → ปัจจุบัน 20.62 ม.รทก.)",
+        "trend": "ลดลง",
+        "detail": "ลดลง -0.06 ม. ในช่วง ~11.7 ชม. (จาก 23/11 20:20 น. ที่ 20.62 ม.รทก. → ปัจจุบัน 20.56 ม.รทก.)",
         "since_prev": {
-          "delta_m": -0.02,
-          "from_datetime_th": "23/11 10:30"
+          "delta_m": -0.06,
+          "from_datetime_th": "23/11 20:20"
         },
         "changes": {
           "1h": null,
@@ -271,18 +271,18 @@
     "level_code": "normal",
     "level_index": 0,
     "insufficient_data": false,
-    "score": 33.1,
+    "score": 25.1,
     "data_fresh": true,
     "forecast_level": "ปกติ",
     "observed_level": "ปกติ",
     "waterlevel_level": "ปกติ",
     "canal_capacity_available": true,
     "reasons": [
-      "พยากรณ์ 24ชม. 5.7 มม. → ปกติ",
-      "ฝนจริงจะนะสูงสุด 28.5 มม. (บ้านควนไม้ไผ่, เก่า 2.7 ชม.)",
-      "ฝนจริงนาทวีสูงสุด 11 มม. (บ้านวัด, เก่า 1.7 ชม.)",
-      "คลองจะนะเหลือถึงตลิ่ง 1.99 ม. (เก่า 0.3 ชม.) — ทรงตัว -0.02 ม. ในช่วง ~9.8 ชม. (จาก 23/11 10:30 น. ที่ 2.78 ม.รทก. → ปัจจุบัน 2.76 ม.รทก.)",
-      "คลองนาทวีเหลือถึงตลิ่ง 2.09 ม. (เก่า 0.3 ชม.) — ทรงตัว -0.02 ม. ในช่วง ~9.8 ชม. (จาก 23/11 10:30 น. ที่ 20.64 ม.รทก. → ปัจจุบัน 20.62 ม.รทก.)"
+      "พยากรณ์ 24ชม. 10.1 มม. → ปกติ",
+      "ฝนจริงจะนะสูงสุด 17 มม. (บ้านควนไม้ไผ่, เก่า 2.2 ชม.)",
+      "ฝนจริงนาทวีสูงสุด 10.5 มม. (บ้านวัด, เก่า 2.2 ชม.)",
+      "คลองจะนะเหลือถึงตลิ่ง 1.95 ม. (เก่า 0.2 ชม.) — ⬆ สูงขึ้น +0.04 ม. ในช่วง ~11.7 ชม. (จาก 23/11 20:20 น. ที่ 2.76 ม.รทก. → ปัจจุบัน 2.8 ม.รทก.)",
+      "คลองนาทวีเหลือถึงตลิ่ง 2.15 ม. (เก่า 0.2 ชม.) — ลดลง -0.06 ม. ในช่วง ~11.7 ชม. (จาก 23/11 20:20 น. ที่ 20.62 ม.รทก. → ปัจจุบัน 20.56 ม.รทก.)"
     ],
     "note": "ประเมินจากตัวเลข 3 เกณฑ์เท่านั้น — ยังต้องพิจารณาประกาศทางการ (TMD/สทนช./ปภ./ผู้ว่าฯ) ประกอบ ซึ่งไฟล์นี้ไม่ได้ดึงอัตโนมัติ. ไม่ใช่การเตือนภัยอย่างเป็นทางการ"
   },
@@ -291,6 +291,8 @@
     "water_level": "ปกติ",
     "escalated": false,
     "sent": false,
-    "lines": []
+    "lines": [
+      "คลองจะนะ: เหลือถึงตลิ่ง 1.95 ม. (ปกติ) | สูงขึ้น +0.04 ม. ในช่วง ~11.7 ชม. (จาก 23/11 20:20 น. ที่ 2.76 ม.รทก. → ปัจจุบัน 2.8 ม.รทก.)"
+    ]
   }
 }
